@@ -93,7 +93,8 @@ textarea{min-height:60px;resize:vertical}
 .bagsub{background:var(--card);border-radius:16px;padding:14px 16px;margin-bottom:10px;box-shadow:0 1px 3px rgba(0,0,0,.05)}
 .bagname{font-weight:700;font-size:1.1rem;margin-bottom:4px}
 .bagitems{font-size:1.05rem}
-.bagextra{margin-top:8px;font-weight:700;color:#6b2a92;background:#f7eefc;padding:6px 10px;border-radius:10px}
+.bagextra{margin-top:10px;font-weight:400;color:var(--ink);background:#fff7e0;border-right:4px solid #f0b429;padding:6px 10px;border-radius:8px;display:flex;justify-content:space-between;align-items:center;gap:8px}
+.bagextra .lbl{display:block;font-size:.75rem;color:#9a6b00;font-weight:700}
 .bagwarn{margin-top:8px;font-weight:700;color:var(--late);background:var(--late-soft);padding:6px 10px;border-radius:10px}
 .bagitem{background:var(--card);border-radius:16px;padding:12px 14px;margin-bottom:8px;display:flex;gap:12px;align-items:center;box-shadow:0 1px 3px rgba(0,0,0,.05);font-size:1.05rem}
 .bagitem .emo{font-size:1.4rem}
@@ -129,15 +130,16 @@ textarea{min-height:60px;resize:vertical}
 /* ===== מערכת שעות (0=ראשון) ===== */
 const TT = {
   0:["מדעים","כישורי חיים","שפה","תורה","חווה חקלאית"],
-  1:["שפה","מתמטיקה","שפה","בישול"],
-  2:["חנ\"ג","מדעים","מתמטיקה","שפה","אנגלית פרטי"],
+  1:["שפה","גאומטריה","מתמטיקה","מתמטיקה","שפה","בישול"],
+  2:["חנ\"ג","מדעים","מתמטיקה","מתמטיקה","שפה","אנגלית פרטי"],
   3:["אנגלית","מולדת","שפה","תורה","מדעים","שבילי מורשת"],
-  4:["חנ\"ג","מתמטיקה","שפה","מפתח הלב"],
+  4:["חנ\"ג","גאומטריה","שפה","שפה","מפתח הלב"],
   5:["אנגלית","מוזיקה"]
 };
-const SUBJECTS = ["מתמטיקה","שפה","מדעים","תורה","אנגלית","אנגלית פרטי","מולדת","שבילי מורשת","כישורי חיים","מפתח הלב","חווה חקלאית","בישול","חנ\"ג","מוזיקה","אחר"];
+const SUBJECTS = ["מתמטיקה","גאומטריה","שפה","מדעים","תורה","אנגלית","אנגלית פרטי","מולדת","שבילי מורשת","כישורי חיים","מפתח הלב","חווה חקלאית","בישול","חנ\"ג","מוזיקה","אחר"];
 const BAG = {
-  "מתמטיקה":["מחברת מתמטיקה","מחברת גאומטריה","חוברת השבחה 1"],
+  "מתמטיקה":["מחברת מתמטיקה","ספר לביא","חוברת התוספות (הדקה)"],
+  "גאומטריה":["מחברת גאומטריה","ספר לביא","חוברת התוספות (הדקה)"],
   "שפה":["מחברת שפה","חוברת עולמות","ספר קריאה","קלסר מנילה"],
   "מדעים":["מחברת מדעים","ספר מדעים"],
   "תורה":["מחברת תורה","חומש בראשית"],
@@ -171,7 +173,8 @@ function computeDates(subject,from,explicit){const lesson=explicit||nextLesson(s
 function normSubject(s){
   s=(s||"").trim();
   if(/פרטי/.test(s))return "אנגלית פרטי";
-  if(/גאומטר|חשבון|מתמט/.test(s))return "מתמטיקה";
+  if(/גאומטר|גיאומטר/.test(s))return "גאומטריה";
+  if(/חשבון|מתמט/.test(s))return "מתמטיקה";
   if(/אנגל|english/i.test(s))return "אנגלית";
   if(/חנ.?.?ג|ספורט|חינוך גופני/.test(s))return "חנ\"ג";
   if(/חווה/.test(s))return "חווה חקלאית";
@@ -296,7 +299,7 @@ function bringLine(t){
     <div class="row"><label class="f">ליום<select id="ebDay">${schoolDays(12).map(d=>`<option value="${d}" ${d===t.lessonDate?"selected":""}>${DAYS[dow(d)]} ${dm(d)}</option>`).join("")}</select></label>
     <label class="f">מקצוע<select id="ebSub">${["כללי",...SUBJECTS.filter(x=>x!=="אחר")].map(x=>`<option ${x===t.subject?"selected":""}>${x}</option>`).join("")}</select></label></div>
     <div class="row"><button class="btn" onclick="saveBring('${t.id}')">שמירה</button><button class="btn ghost" onclick="editBring=null;render()">ביטול</button><button class="icon" style="margin-inline-start:auto;color:var(--late)" onclick="removeTask('${t.id}')">${confirmId===t.id?"בטוח?":"הסרה"}</button></div></div>`;
-  return `<div class="bagextra">${esc(t.text)}${isParent()?` <button class="icon" style="color:#6b2a92" onclick="editBring='${t.id}';render()">עריכה</button>`:""}</div>`;
+  return `<div class="bagextra"><span><span class="lbl">גם להביא</span>${esc(t.text)}</span>${isParent()?`<button class="icon" onclick="editBring='${t.id}';render()">עריכה</button>`:""}</div>`;
 }
 function viewBag(){
   const days=schoolDays(12);
@@ -309,14 +312,15 @@ function viewBag(){
     <div class="row" style="margin:-4px 0 12px;justify-content:space-between">
     <button class="btn ghost" style="min-height:40px;padding:8px 14px;${i===0?"visibility:hidden":""}" onclick="bagDay='${days[Math.max(0,i-1)]}';render()">→ יום קודם</button>
     <button class="btn ghost" style="min-height:40px;padding:8px 14px" onclick="bagDay='${days[Math.min(days.length-1,i+1)]}';render()">יום הבא ←</button></div>`;
-  if(general.length)h+=`<div class="bagsub"><div class="bagname">גם להביא</div>${general.map(bringLine).join("")}</div>`;
+  if(general.length)h+=`<div class="bagsub"><div class="bagname">כללי</div>${general.map(bringLine).join("")}</div>`;
+  const seen=new Set();
   h+=subs.map(s=>{
-    const items=BAG[s]||[];
+    const all=BAG[s]||[];const items=all.filter(x=>!seen.has(x)&&seen.add(x));const shared=all.length-items.length;
     const bring=bringAll.filter(t=>t.subject===s);
     const todo=tasks.filter(t=>t.kind!=="bring"&&t.lessonDate===day&&t.subject===s&&!t.done);
     if(!items.length&&!bring.length&&!todo.length)return "";
     return `<div class="bagsub"><div class="bagname">${s}</div>
-      ${items.length?`<div class="bagitems">${items.map(esc).join(" · ")}</div>`:""}
+      ${items.length?`<div class="bagitems">${items.map(esc).join(" · ")}${shared?` <span style="color:var(--muted);font-size:.85rem">(הספר והחוברת – אותם כמו למעלה)</span>`:""}</div>`:""}
       ${bring.map(bringLine).join("")}
       ${todo.map(t=>`<div class="bagwarn">לגמור: ${esc(t.text)}</div>`).join("")}</div>`;
   }).join("");
@@ -442,7 +446,7 @@ ${tt}
 - homework: שיעורי בית, "לסיים בבית", דפי עבודה להשלים בבית, "מי שלא סיים…".
 - classwork: עבודה מוגדרת שנעשתה בכיתה (עמודים, דף עבודה, תרגילים), למשל "בכיתה – עמ' 19". תום צריך לסיים בבית מה שלא סיים. text: רק מה העבודה, למשל "עמ' 19".
 התעלם מכל השאר: נושאי שיעור, שאלות שהן כותרת של שיעור, הודעות כלליות, ציוד להביא (קבוע או מיוחד), "נא להביא…", "הביאו…", בחירות, טיולים, תזכורות. אם אין משימות – החזר items ריק.
-subject: אחד מ: ${SUBJECTS.join(", ")} (גאומטריה = מתמטיקה; לשון = שפה).
+subject: אחד מ: ${SUBJECTS.join(", ")} (גאומטריה/גיאומטריה היא מקצוע נפרד ממתמטיקה – בדוק בכותרת השיעור; לשון = שפה).
 text: קצר וברור בעברית, למשל "עמ' 41–42 – לסיים בבית".
 lessonDate: תאריך השיעור שבו מגישים, רק אם נכתב במפורש כתאריך, אחרת null.
 ${pendingText.trim()?`טקסט ההודעה:\n"""\n${pendingText.trim()}\n"""\n`:""}
