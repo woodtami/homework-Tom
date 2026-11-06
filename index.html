@@ -471,7 +471,7 @@ async function readInput(){
     for(const [i,p] of pendingImgs.entries()){parts.push({text:`תמונה ${i+1}:`});parts.push({inline_data:{mime_type:"image/jpeg",data:await b64(p.blob)}})}
     const out=await callGemini(parts);
     reviewing=(out.items||[]).map(it=>{
-      const subject=normSubject(it.subject),okD=x=>typeof x==="string"&&/^\d{4}-\d\d-\d\d$/.test(x)&&x<=today()?x:null,img=pendingImgs[(Number(it.image)||0)-1]||(pendingImgs.length===1&&!pendingText.trim()?pendingImgs[0]:null),from=okD(it.dateInImage)||(img&&img.date)||srcDate,d=computeDates(subject,from,it.lessonDate),text=(it.text||"").trim();
+      const subject=normSubject(it.subject),okD2=x=>typeof x==="string"&&/^\d{4}-\d\d-\d\d$/.test(x)?x:null,okD=x=>typeof x==="string"&&/^\d{4}-\d\d-\d\d$/.test(x)&&x<=today()?x:null,img=pendingImgs[(Number(it.image)||0)-1]||(pendingImgs.length===1&&!pendingText.trim()?pendingImgs[0]:null),from=okD(it.dateInImage)||(img&&img.date)||srcDate,lesson=okD2(it.lessonDate)&&okD2(it.lessonDate)>from?it.lessonDate:null,d=computeDates(subject,from,lesson),text=(it.text||"").trim();
       const n=s=>(s||"").replace(/[^֐-׿a-z0-9]/gi,"");
       const dup=findDup(subject,text,d.lessonDate)||null;
       return{subject,text,kind:["bring","classwork"].includes(it.kind)?it.kind:"homework",...d,dup,sourceDate:from};
