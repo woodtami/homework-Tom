@@ -248,7 +248,7 @@ function taskHtml(t){
     <select name="kind">${[["homework","ש.ב"],["classwork","בכיתה"],["bring","להביא"]].map(([v,l])=>`<option value="${v}" ${v===t.kind?"selected":""}>${l}</option>`).join("")}</select>
     <textarea name="text">${esc(t.text)}</textarea>
     <label class="f">לסיים עד<input type="date" name="due" value="${t.dueDate||""}"></label>
-    <div class="row" style="margin:0"><button class="btn" onclick="saveEdit('${t.id}')">שמירה</button><button class="btn ghost" onclick="editId=null;render()">ביטול</button></div></div></div>`;
+    <div class="row" style="margin:0"><button class="btn" onclick="saveEdit('${t.id}')">שמירה</button><button class="btn ghost" onclick="editId=null;render()">ביטול</button><button class="icon" style="margin-inline-start:auto;color:var(--late)" onclick="removeTask('${t.id}')">${confirmId===t.id?"בטוח?":"הסרה"}</button></div></div></div>`;
   const kindTag=t.kind==="bring"?`<span class="tag bring">להביא</span>`:t.kind==="classwork"?`<span class="tag cls">מהכיתה – לבדוק</span>`:"";
   return `<div class="task ${t.done?"done":""}">
     <button class="chk" aria-label="סימון" onclick="toggle('${t.id}')">${t.done?"✓":""}</button>
