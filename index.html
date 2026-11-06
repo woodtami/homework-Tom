@@ -13,76 +13,85 @@
 <meta name="apple-mobile-web-app-title" content="שיעורי בית">
 <link href="https://fonts.googleapis.com/css2?family=Rubik:wght@400;500;700&display=swap" rel="stylesheet">
 <style>
-:root{--bg:#f6f4ef;--card:#fff;--ink:#1f2430;--muted:#6b7280;--line:#e6e2d8;--accent:#2f5d8a;--accent-soft:#e7eef6;--late:#c2412d;--late-soft:#fbe9e5;--today:#b7791f;--today-soft:#fdf3e1;--ok:#2f7d4f}
-*{box-sizing:border-box}
-body{margin:0;background:var(--bg);color:var(--ink);font-family:Rubik,system-ui,sans-serif;font-size:16px;line-height:1.45}
-header{background:var(--accent);color:#fff;padding:18px 16px 0;padding-top:max(18px,env(safe-area-inset-top))}
+:root{--bg:#f4f6fb;--card:#fff;--ink:#1d2433;--muted:#6b7385;--line:#e3e7f0;--accent:#4f6bed;--accent-soft:#eaeefd;--late:#e5484d;--late-soft:#fdecec;--today:#f59e0b;--today-soft:#fff5e1;--ok:#22a06b;--ok-soft:#e3f6ec}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html{font-size:18px}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:Rubik,system-ui,sans-serif;line-height:1.4;padding-bottom:calc(84px + env(safe-area-inset-bottom))}
+header{background:var(--accent);color:#fff;padding:14px 18px 18px;padding-top:max(14px,env(safe-area-inset-top));border-radius:0 0 22px 22px}
 .top{display:flex;justify-content:space-between;align-items:center}
-header h1{margin:0;font-size:22px}
-header .sub{opacity:.85;font-size:14px;margin-top:2px}
-.gear{background:none;border:0;color:#fff;font-size:22px;cursor:pointer;opacity:.85}
-nav{display:flex;gap:4px;margin-top:14px;overflow-x:auto}
-nav button{flex:1;min-width:max-content;background:transparent;border:0;color:#fff;opacity:.75;font:inherit;font-size:15px;padding:10px 12px;border-bottom:3px solid transparent;cursor:pointer}
-nav button.on{opacity:1;border-bottom-color:#fff;font-weight:500}
-main{max-width:720px;margin:0 auto;padding:16px 12px 60px}
-.status{font-size:14px;color:var(--muted);padding:8px 4px}
-.group{margin-bottom:22px}
-.group h2{font-size:15px;margin:0 4px 8px;display:flex;align-items:center;gap:8px}
-.pill{font-size:12px;padding:2px 8px;border-radius:99px;font-weight:500;background:var(--accent-soft);color:var(--accent)}
-.late .pill{background:var(--late-soft);color:var(--late)}
-.today .pill{background:var(--today-soft);color:var(--today)}
-.task{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:12px;margin-bottom:8px;display:flex;gap:12px;align-items:flex-start}
-.late .task{border-right:4px solid var(--late)}
-.today .task{border-right:4px solid var(--today)}
-.task.done{opacity:.6}
+header h1{margin:0;font-size:1.35rem;font-weight:700}
+header .sub{opacity:.9;font-size:.85rem;margin-top:2px}
+.gear{background:rgba(255,255,255,.18);border:0;color:#fff;font-size:1.3rem;width:44px;height:44px;border-radius:50%;cursor:pointer}
+nav{position:fixed;bottom:0;left:0;right:0;background:#fff;border-top:1px solid var(--line);display:flex;padding:6px 6px calc(6px + env(safe-area-inset-bottom));z-index:5}
+nav button{flex:1;background:none;border:0;font:inherit;color:var(--muted);display:flex;flex-direction:column;align-items:center;gap:2px;padding:6px 0;border-radius:14px;cursor:pointer;font-size:.8rem}
+nav button .ic{font-size:1.5rem;line-height:1}
+nav button.on{color:var(--accent);background:var(--accent-soft);font-weight:700}
+main{max-width:640px;margin:0 auto;padding:16px 14px 20px}
+.status{color:var(--muted);padding:12px 4px}
+.banner{background:var(--card);border-radius:18px;padding:14px 16px;margin-bottom:16px;display:flex;align-items:center;gap:12px;font-weight:700;font-size:1.05rem;box-shadow:0 1px 3px rgba(0,0,0,.05)}
+.banner .big{font-size:2rem;line-height:1}
+.group{margin-bottom:20px}
+.group h2{font-size:1rem;margin:0 6px 8px;font-weight:700}
+.late h2{color:var(--late)}.today h2{color:#b26b00}
+.task{background:var(--card);border-radius:18px;padding:14px;margin-bottom:10px;display:flex;gap:14px;align-items:center;box-shadow:0 1px 3px rgba(0,0,0,.06);border:2px solid transparent}
+.late .task{border-color:var(--late-soft);background:#fffafa}
+.task.done{opacity:.55}
 .task.done .txt{text-decoration:line-through}
-.chk{width:30px;height:30px;flex:none;border:2px solid var(--accent);border-radius:8px;background:#fff;cursor:pointer;display:grid;place-items:center;font-size:18px;color:#fff;padding:0}
+.chk{width:44px;height:44px;flex:none;border:3px solid #c7cede;border-radius:14px;background:#fff;cursor:pointer;display:grid;place-items:center;font-size:1.5rem;color:#fff;padding:0;transition:transform .15s}
+.chk:active{transform:scale(.9)}
 .task.done .chk{background:var(--ok);border-color:var(--ok)}
+.emo{font-size:1.6rem;width:36px;text-align:center;flex:none}
 .body{flex:1;min-width:0}
-.subj{font-weight:700;font-size:15px}
-.kind{font-size:12px;font-weight:400;margin-right:6px}
-.kind.bring{color:#8a4b9c}.kind.hw{color:var(--accent)}.kind.cls{color:#0f766e}
-.txt{margin-top:2px;white-space:pre-wrap;word-break:break-word}
-.meta{font-size:13px;color:var(--muted);margin-top:4px}
-.tools{display:flex;gap:2px}
-.icon{background:none;border:0;cursor:pointer;color:var(--muted);font-size:16px;padding:4px 6px;border-radius:6px}
-.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px;margin-bottom:16px}
-.card h3{margin:0 0 6px;font-size:17px}
-.hint{font-size:14px;color:var(--muted);margin:0 0 12px}
-.drop{border:2px dashed #c9c2b1;border-radius:12px;padding:22px;text-align:center;cursor:pointer;color:var(--muted)}
+.subj{font-weight:700;font-size:1rem;color:var(--muted)}
+.txt{font-size:1.1rem;font-weight:500;margin-top:1px;word-break:break-word}
+.tag{display:inline-block;font-size:.8rem;font-weight:700;padding:2px 10px;border-radius:99px;margin-top:6px;margin-left:4px}
+.tag.late{background:var(--late-soft);color:var(--late)}
+.tag.today{background:var(--today-soft);color:#b26b00}
+.tag.soon{background:var(--accent-soft);color:var(--accent)}
+.tag.bring{background:#f3e8fb;color:#8a3fb5}
+.tag.cls{background:#e0f5f2;color:#0f766e}
+.who-done{font-size:.8rem;color:var(--muted);margin-top:4px}
+.tools{display:flex;flex-direction:column;gap:2px}
+.icon{background:none;border:0;cursor:pointer;color:var(--muted);font-size:1.1rem;padding:6px;border-radius:8px}
+.card{background:var(--card);border-radius:18px;padding:16px;margin-bottom:14px;box-shadow:0 1px 3px rgba(0,0,0,.05)}
+.card h3{margin:0 0 6px;font-size:1.1rem}
+.hint{font-size:.9rem;color:var(--muted);margin:0 0 12px}
+.drop{border:3px dashed #c7cede;border-radius:16px;padding:26px;text-align:center;cursor:pointer;color:var(--accent);font-weight:700;font-size:1.05rem}
 .thumbs{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
-.thumbs img{width:64px;height:64px;object-fit:cover;border-radius:8px;border:1px solid var(--line)}
-.btn{background:var(--accent);color:#fff;border:0;border-radius:10px;font:inherit;font-weight:500;padding:11px 18px;cursor:pointer}
-.btn:disabled{opacity:.5;cursor:default}
+.thumbs img{width:70px;height:70px;object-fit:cover;border-radius:10px}
+.btn{background:var(--accent);color:#fff;border:0;border-radius:14px;font:inherit;font-weight:700;padding:13px 20px;cursor:pointer;min-height:48px}
+.btn:disabled{opacity:.45;cursor:default}
 .btn.ghost{background:var(--accent-soft);color:var(--accent)}
-.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-top:12px}
-label.f{display:flex;flex-direction:column;font-size:13px;color:var(--muted);gap:4px}
-input,select,textarea{font:inherit;font-size:16px;border:1px solid var(--line);border-radius:8px;padding:8px;background:#fff;color:var(--ink)}
-textarea{width:100%;min-height:54px;resize:vertical}
-.rev{border:1px solid var(--line);border-radius:10px;padding:10px;margin-top:10px;display:grid;gap:8px;grid-template-columns:1fr 1fr}
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-top:12px}
+label.f{display:flex;flex-direction:column;font-size:.85rem;color:var(--muted);gap:4px;flex:1;min-width:130px}
+input,select,textarea{font:inherit;font-size:1rem;border:2px solid var(--line);border-radius:12px;padding:10px;background:#fff;color:var(--ink);width:100%}
+textarea{min-height:60px;resize:vertical}
+.rev{border:2px solid var(--line);border-radius:14px;padding:12px;margin-top:10px;display:grid;gap:8px;grid-template-columns:1fr 1fr}
 .rev textarea{grid-column:1/-1}
-.rev .x{grid-column:1/-1;display:flex;justify-content:space-between;align-items:center;font-size:13px;color:var(--muted)}
-.err{color:var(--late);font-size:14px;margin-top:8px}
-.bagday{font-size:18px;font-weight:700;margin:0 4px 10px}
-.bag{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:12px;margin-bottom:8px}
-.bag ul{margin:6px 0 0;padding-inline-start:20px}
-.extra{color:#8a4b9c;font-weight:500}
-.empty{text-align:center;color:var(--muted);padding:30px 10px}
-.empty b{display:block;font-size:20px;color:var(--ok);margin-bottom:4px}
-.tt{width:100%;border-collapse:collapse;font-size:14px}
-.tt td,.tt th{border:1px solid var(--line);padding:6px;text-align:right;vertical-align:top}
+.rev .x{grid-column:1/-1;display:flex;justify-content:space-between;align-items:center;font-size:.85rem;color:var(--muted)}
+.err{color:var(--late);font-size:.9rem;margin-top:8px}
+.bagday{font-size:1.25rem;font-weight:700;margin:0 6px 12px}
+.bagitem{background:var(--card);border-radius:16px;padding:12px 14px;margin-bottom:8px;display:flex;gap:12px;align-items:center;box-shadow:0 1px 3px rgba(0,0,0,.05);font-size:1.05rem}
+.bagitem .emo{font-size:1.4rem}
+.bagitem small{display:block;color:var(--muted);font-size:.85rem}
+.bagitem.extra{background:#f7eefc;font-weight:700;color:#6b2a92}
+.bagitem.warn{background:var(--late-soft)}
+.empty{text-align:center;padding:40px 10px;font-size:1.1rem;color:var(--muted)}
+.empty .big{font-size:3.5rem;display:block;margin-bottom:8px}
+.empty b{display:block;font-size:1.4rem;color:var(--ok);margin-bottom:4px}
+.tt{width:100%;border-collapse:collapse;font-size:.8rem}
+.tt td,.tt th{border:1px solid var(--line);padding:5px;text-align:right;vertical-align:top}
 .tt th{background:var(--accent-soft)}
-.who{display:flex;gap:10px;flex-wrap:wrap}
-.who button{flex:1;min-width:90px;font-size:20px;padding:18px}
-.toast{position:fixed;bottom:16px;left:50%;transform:translateX(-50%);background:#1f2430;color:#fff;padding:10px 16px;border-radius:10px;font-size:14px;z-index:9}
-code{background:var(--bg);padding:2px 6px;border-radius:6px;font-size:13px;word-break:break-all}
+.who{display:flex;gap:10px}
+.who button{flex:1;font-size:1.2rem;padding:18px 6px}
+.toast{position:fixed;bottom:100px;left:50%;transform:translateX(-50%);background:#1d2433;color:#fff;padding:12px 18px;border-radius:14px;font-size:.95rem;z-index:9}
 </style>
 </head>
 <body>
 <header>
-  <div class="top"><div><h1>שיעורי בית – תום</h1><div class="sub" id="todayLbl"></div></div><button class="gear" onclick="go('settings')" aria-label="הגדרות">⚙︎</button></div>
-  <nav id="nav"></nav>
+  <div class="top"><div><h1>השיעורים של תום</h1><div class="sub" id="todayLbl"></div></div><button class="gear" onclick="go('settings')" aria-label="הגדרות">⚙︎</button></div>
 </header>
+<nav id="nav"></nav>
 <main id="main"><div class="status">טוען…</div></main>
 
 <script>
@@ -98,20 +107,22 @@ const TT = {
 const SUBJECTS = ["מתמטיקה","שפה","מדעים","תורה","אנגלית","אנגלית פרטי","מולדת","שבילי מורשת","כישורי חיים","מפתח הלב","חווה חקלאית","בישול","חנ\"ג","מוזיקה","אחר"];
 const BAG = {
   "מתמטיקה":["מחברת מתמטיקה","מחברת גאומטריה","חוברת השבחה מס' 1"],
-  "שפה":["מחברת שפה","חוברת עולמות","ספר קריאה (חובה!)","קלסר מנילה"],
+  "שפה":["מחברת שפה","חוברת עולמות","ספר קריאה","קלסר מנילה"],
   "מדעים":["מחברת מדעים","ספר פלאטבע"],
   "תורה":["מחברת תורה","חומש בראשית"],
   "אנגלית":["Jet 1 Book","Alphabet Workbook","מחברת אנגלית"],
   "מולדת":["מחברת מולדת","ספר מולדת"],
   "שבילי מורשת":["מחברת מורשת"],
-  "כישורי חיים":["מחברת שורות (כישורי חיים + מפתח הלב)"],
-  "מפתח הלב":["מחברת שורות (כישורי חיים + מפתח הלב)"],
+  "כישורי חיים":["מחברת שורות"],
+  "מפתח הלב":["מחברת שורות"],
   "חווה חקלאית":["נעליים סגורות","תיק קטן עם בקבוק מים"],
   "בישול":["הדבר שצריך להביא לבישול (ראו למעלה)"],
   "חנ\"ג":["בגדי ספורט ובקבוק מים"],
   "מוזיקה":[]
 };
 const NOT_BAG = ["אנגלית פרטי"];
+const EMO = {"מתמטיקה":"🔢","שפה":"📖","מדעים":"🔬","תורה":"📜","אנגלית":"🔤","אנגלית פרטי":"🔤","מולדת":"🗺️","שבילי מורשת":"🏛️","כישורי חיים":"💬","מפתח הלב":"❤️","חווה חקלאית":"🌱","בישול":"🍳","חנ\"ג":"⚽","מוזיקה":"🎵","אחר":"📌"};
+const emo=s=>EMO[s]||"📌";
 const DAYS = ["ראשון","שני","שלישי","רביעי","חמישי","שישי","שבת"];
 const DSHORT = ["א׳","ב׳","ג׳","ד׳","ה׳","ו׳","ש׳"];
 const WHO = ["אמא","אבא","תום"];
@@ -206,7 +217,14 @@ async function addTasks(list){
 }
 
 /* ===== תצוגה ===== */
-const KIND={homework:`<span class="kind hw">📝 ש.ב</span>`,classwork:`<span class="kind cls">🏫 בכיתה – לוודא שהושלם</span>`,bring:`<span class="kind bring">🎒 להביא</span>`};
+function relDay(d){
+  const td=today();
+  if(d<td)return "עבר הזמן!";
+  if(d===td)return "עד היום";
+  if(d===addDays(td,1))return "עד מחר";
+  return "עד יום "+DAYS[dow(d)];
+}
+function dueCls(d){const td=today();return d<td?"late":d===td?"today":"soon"}
 function taskHtml(t){
   if(editId===t.id)return `<div class="task" id="ed-${t.id}"><div class="body" style="display:grid;gap:8px">
     <select name="subject">${SUBJECTS.map(s=>`<option ${s===t.subject?"selected":""}>${s}</option>`).join("")}</select>
@@ -214,35 +232,39 @@ function taskHtml(t){
     <textarea name="text">${esc(t.text)}</textarea>
     <label class="f">לסיים עד<input type="date" name="due" value="${t.dueDate||""}"></label>
     <div class="row" style="margin:0"><button class="btn" onclick="saveEdit('${t.id}')">שמירה</button><button class="btn ghost" onclick="editId=null;render()">ביטול</button></div></div></div>`;
+  const kindTag=t.kind==="bring"?`<span class="tag bring">🎒 להביא</span>`:t.kind==="classwork"?`<span class="tag cls">🏫 מהכיתה – לבדוק</span>`:"";
   return `<div class="task ${t.done?"done":""}">
     <button class="chk" aria-label="סימון" onclick="toggle('${t.id}')">${t.done?"✓":""}</button>
-    <div class="body"><div class="subj">${esc(t.subject)}${KIND[t.kind]||""}</div>
+    <div class="emo">${emo(t.subject)}</div>
+    <div class="body"><div class="subj">${esc(t.subject)}</div>
       <div class="txt">${esc(t.text)}</div>
-      <div class="meta">${t.kind==="bring"?"להכין עד":"לסיים עד"} ${fmt(t.dueDate)}${t.lessonDate?` · לשיעור ב${fmt(t.lessonDate)}`:""}${t.done&&t.doneBy?` · סומן ע״י ${esc(t.doneBy)}`:""}</div></div>
-    ${isParent()?`<div class="tools"><button class="icon" onclick="editId='${t.id}';render()">✎</button><button class="icon" onclick="removeTask('${t.id}')">${confirmId===t.id?"<span style='color:var(--late);font-size:13px'>למחוק?</span>":"🗑"}</button></div>`:""}
+      ${t.done?(t.doneBy?`<div class="who-done">✓ ${esc(t.doneBy)}</div>`:""):`<span class="tag ${dueCls(t.dueDate)}">${relDay(t.dueDate)}</span>${kindTag}`}</div>
+    ${isParent()?`<div class="tools"><button class="icon" onclick="editId='${t.id}';render()">✎</button><button class="icon" onclick="removeTask('${t.id}')">${confirmId===t.id?"<span style='color:var(--late);font-size:.8rem'>למחוק?</span>":"🗑"}</button></div>`:""}
   </div>`;
 }
 function viewOpen(){
   const open=tasks.filter(t=>!t.done).sort((a,b)=>(a.dueDate||"").localeCompare(b.dueDate||""));
-  if(!open.length)return `<div class="empty"><b>הכל בוצע 🎉</b>אין משימות פתוחות כרגע.</div>`;
-  const td=today(),tm=nextSchoolDay(td);
-  return [{c:"late",t:"באיחור",f:t=>t.dueDate<td},{c:"today",t:"להיום",f:t=>t.dueDate===td},{c:"soon",t:`עד ${fmt(tm)}`,f:t=>t.dueDate>td&&t.dueDate<=tm},{c:"",t:"בהמשך",f:t=>t.dueDate>tm}]
-    .map(g=>{const l=open.filter(g.f);return l.length?`<section class="group ${g.c}"><h2>${g.t}<span class="pill">${l.length}</span></h2>${l.map(taskHtml).join("")}</section>`:""}).join("");
+  if(!open.length)return `<div class="empty"><span class="big">🎉</span><b>כל הכבוד!</b>אין שיעורים פתוחים</div>`;
+  const td=today(),tm=addDays(td,1);
+  const banner=`<div class="banner"><span class="big">${open.length>3?"💪":"⭐"}</span>נשארו ${open.length} ${open.length===1?"משימה":"משימות"}</div>`;
+  return banner+[{c:"late",t:"⏰ עבר הזמן",f:t=>t.dueDate<td},{c:"today",t:"היום",f:t=>t.dueDate===td},{c:"",t:"מחר",f:t=>t.dueDate===tm},{c:"",t:"אחר כך",f:t=>t.dueDate>tm}]
+    .map(g=>{const l=open.filter(g.f);return l.length?`<section class="group ${g.c}"><h2>${g.t}</h2>${l.map(taskHtml).join("")}</section>`:""}).join("");
 }
 function viewDone(){
   const done=tasks.filter(t=>t.done).sort((a,b)=>(b.doneAt||"").localeCompare(a.doneAt||""));
-  return done.length?`<section class="group">${done.slice(0,60).map(taskHtml).join("")}</section>`:`<div class="empty">עוד לא סומנו משימות שבוצעו.</div>`;
+  return done.length?`<section class="group">${done.slice(0,60).map(taskHtml).join("")}</section>`:`<div class="empty"><span class="big">📋</span>עוד לא סימנת כלום</div>`;
 }
 function viewBag(){
   const day=nextSchoolDay(today());
   const subs=[...new Set(TT[dow(day)]||[])].filter(x=>!NOT_BAG.includes(x));
   const bring=tasks.filter(t=>t.kind==="bring"&&t.lessonDate===day);
-  const ready=tasks.filter(t=>t.kind!=="bring"&&t.lessonDate===day&&!NOT_BAG.includes(t.subject));
-  let h=`<div class="bagday">🎒 התיק ליום ${DAYS[dow(day)]} ${parse(day).getDate()}/${parse(day).getMonth()+1}</div>`;
-  if(bring.length)h+=`<div class="bag"><b class="extra">מיוחד למחר</b><ul>${bring.map(t=>`<li class="extra">${esc(t.subject)}: ${esc(t.text)}${t.done?" ✓":""}</li>`).join("")}</ul></div>`;
-  if(ready.length)h+=`<div class="bag"><b>מה צריך להיות מוכן למחר</b><ul>${ready.map(t=>`<li>${esc(t.subject)}: ${esc(t.text)} ${t.done?"✓":"<span style='color:var(--late)'>(עוד לא סומן)</span>"}</li>`).join("")}</ul></div>`;
-  h+=subs.map(s=>{const it=BAG[s]||[];return `<div class="bag"><b>${s}</b>${it.length?`<ul>${it.map(i=>`<li>${esc(i)}</li>`).join("")}</ul>`:""}</div>`}).join("");
-  h+=`<details class="card" style="margin-top:18px"><summary style="cursor:pointer;font-weight:500">מערכת השעות</summary><table class="tt" style="margin-top:10px"><tr>${[0,1,2,3,4,5].map(d=>`<th>${DAYS[d]}</th>`).join("")}</tr><tr>${[0,1,2,3,4,5].map(i=>`<td>${TT[i].join("<br>")}</td>`).join("")}</tr></table></details>`;
+  const ready=tasks.filter(t=>t.kind!=="bring"&&t.lessonDate===day&&!t.done&&!NOT_BAG.includes(t.subject));
+  let h=`<div class="bagday">🎒 התיק ליום ${DAYS[dow(day)]}</div>`;
+  h+=bring.map(t=>`<div class="bagitem extra"><span class="emo">⭐</span><div>${esc(t.text)}<small>${esc(t.subject)}</small></div></div>`).join("");
+  h+=ready.map(t=>`<div class="bagitem warn"><span class="emo">⚠️</span><div>לגמור: ${esc(t.text)}<small>${esc(t.subject)}</small></div></div>`).join("");
+  const items=[];subs.forEach(s=>(BAG[s]||[]).forEach(i=>{if(!items.some(x=>x.i===i))items.push({s,i})}));
+  h+=items.map(x=>`<div class="bagitem"><span class="emo">${emo(x.s)}</span><div>${esc(x.i)}</div></div>`).join("");
+  if(isParent())h+=`<details class="card" style="margin-top:18px"><summary style="cursor:pointer;font-weight:700">מערכת השעות</summary><table class="tt" style="margin-top:10px"><tr>${[0,1,2,3,4,5].map(d=>`<th>${DAYS[d]}</th>`).join("")}</tr><tr>${[0,1,2,3,4,5].map(i=>`<td>${TT[i].join("<br>")}</td>`).join("")}</tr></table></details>`;
   return h;
 }
 function viewAdd(){
@@ -290,8 +312,8 @@ function viewNoLink(){
   return `<div class="card"><h3>חסר קישור משפחתי</h3><p class="hint">פתחו את האפליקציה מהקישור המלא שקיבלתם (בווטסאפ), פעם אחת. אחרי זה היא תיזכר.</p></div>`;
 }
 function navHtml(){
-  const tabs=[["open","מה פתוח"],["bag","תיק למחר"],...(isParent()?[["add","הוספה"]]:[]),["done","בוצע"]];
-  return tabs.map(([v,l])=>`<button class="${v===view?"on":""}" onclick="go('${v}')">${l}</button>`).join("");
+  const tabs=[["open","📋","משימות"],["bag","🎒","תיק"],...(isParent()?[["add","➕","הוספה"]]:[]),["done","✅","בוצע"]];
+  return tabs.map(([v,ic,l])=>`<button class="${v===view?"on":""}" onclick="go('${v}')"><span class="ic">${ic}</span>${l}</button>`).join("");
 }
 function go(v){view=v;render();window.scrollTo(0,0)}
 function render(){
