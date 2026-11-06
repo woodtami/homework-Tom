@@ -192,8 +192,9 @@ async function sb(path,opt={}){
   if(!r.ok)throw new Error((await r.text())||r.status);
   const t=await r.text();return t?JSON.parse(t):null;
 }
-const fromRow=r=>({id:r.id,subject:r.subject,text:r.text,kind:r.kind,dueDate:r.due_date,lessonDate:r.lesson_date,done:r.done,doneBy:r.done_by,doneAt:r.done_at,createdAt:r.created_at});
-const toRow=t=>({id:t.id,subject:t.subject,text:t.text,kind:t.kind,due_date:t.dueDate,lesson_date:t.lessonDate,done:!!t.done,done_by:t.doneBy||null,done_at:t.doneAt||null});
+let hasGiven=true;
+const fromRow=r=>({id:r.id,subject:r.subject,text:r.text,kind:r.kind,dueDate:r.due_date,lessonDate:r.lesson_date,done:r.done,doneBy:r.done_by,doneAt:r.done_at,createdAt:r.created_at,givenDate:r.given_date||null});
+const toRow=t=>({id:t.id,subject:t.subject,text:t.text,kind:t.kind,due_date:t.dueDate,lesson_date:t.lessonDate,done:!!t.done,done_by:t.doneBy||null,done_at:t.doneAt||null,...(hasGiven?{given_date:t.givenDate||t.sourceDate||null}:{})});
 
 /* ===== מצב ===== */
 let tasks=[],loaded=false,loadErr="",view="open";
@@ -205,7 +206,7 @@ $("#todayLbl").textContent=`היום: יום ${DAYS[new Date().getDay()]} ${new 
 
 async function load(){
   if(!cfg.url||!cfg.key){loadErr="nolink";render();return}
-  try{const rows=await sb("tasks?select=*&order=due_date.asc");tasks=rows.map(fromRow);loaded=true;loadErr=""}
+  try{const rows=await sb("tasks?select=*&order=due_date.asc");if(rows.length)hasGiven="given_date" in rows[0];tasks=rows.map(fromRow);loaded=true;loadErr=""}
   catch(e){loadErr="לא הצלחתי לטעון את הרשימה. בדקו חיבור לאינטרנט.";console.error(e)}
   if(!editId&&!editBring&&!reviewing&&!["TEXTAREA","INPUT","SELECT"].includes(document.activeElement?.tagName))render();
 }
@@ -226,14 +227,17 @@ async function removeTask(id){
 }
 async function saveEdit(id){
   const box=document.getElementById("ed-"+id),t=tasks.find(x=>x.id===id);
-  Object.assign(t,{subject:box.querySelector("[name=subject]").value,kind:box.querySelector("[name=kind]").value,text:box.querySelector("[name=text]").value.trim(),dueDate:box.querySelector("[name=due]").value});
+  Object.assign(t,{subject:box.querySelector("[name=subject]").value,kind:box.querySelector("[name=kind]").value,text:box.querySelector("[name=text]").value.trim(),dueDate:box.querySelector("[name=due]").value,givenDate:box.querySelector("[name=given]").value||t.givenDate});
+  if(t.givenDate)t.lessonDate=computeDates(t.subject,t.givenDate,null).lessonDate;
   editId=null;render();
-  try{await sb("tasks?id=eq."+encodeURIComponent(id),{method:"PATCH",body:JSON.stringify({subject:t.subject,kind:t.kind,text:t.text,due_date:t.dueDate})})}catch(e){toast("לא נשמר");load()}
+  try{await sb("tasks?id=eq."+encodeURIComponent(id),{method:"PATCH",body:JSON.stringify({subject:t.subject,kind:t.kind,text:t.text,due_date:t.dueDate,lesson_date:t.lessonDate,...(hasGiven&&t.givenDate?{given_date:t.givenDate}:{})})})}catch(e){toast("לא נשמר");load()}
 }
 const newId=()=>Date.now().toString(36)+Math.random().toString(36).slice(2,7);
 async function addTasks(list){
-  const rows=list.map(t=>toRow({...t,id:newId(),done:false}));
-  const res=await sb("tasks",{method:"POST",body:JSON.stringify(rows)});
+  const mk=()=>list.map(t=>toRow({...t,id:t.id||(t.id=newId()),done:false}));
+  let res;
+  try{res=await sb("tasks",{method:"POST",body:JSON.stringify(mk())})}
+  catch(e){if(hasGiven&&/given_date/.test(String(e.message))){hasGiven=false;res=await sb("tasks",{method:"POST",body:JSON.stringify(mk())})}else throw e}
   tasks.push(...res.map(fromRow));
 }
 
@@ -251,6 +255,7 @@ function taskHtml(t){
     <select name="subject">${SUBJECTS.map(s=>`<option ${s===t.subject?"selected":""}>${s}</option>`).join("")}</select>
     <select name="kind">${[["homework","ש.ב"],["classwork","בכיתה"],["bring","להביא"]].map(([v,l])=>`<option value="${v}" ${v===t.kind?"selected":""}>${l}</option>`).join("")}</select>
     <textarea name="text">${esc(t.text)}</textarea>
+    <label class="f">ניתן ביום${t.givenDate?"":" <span style='color:var(--muted)'>(לא נשמר במשימה הזו)</span>"}<input type="date" name="given" value="${t.givenDate||""}" max="${today()}" onchange="const f=this.closest('.body');if(this.value){const d=computeDates(f.querySelector('[name=subject]').value,this.value,null);f.querySelector('[name=due]').value=d.dueDate}"></label>
     <label class="f">לסיים עד<input type="date" name="due" value="${t.dueDate||""}"></label>
     <div class="row" style="margin:0"><button class="btn" onclick="saveEdit('${t.id}')">שמירה</button><button class="btn ghost" onclick="editId=null;render()">ביטול</button><button class="icon" style="margin-inline-start:auto;color:var(--late)" onclick="removeTask('${t.id}')">${confirmId===t.id?"בטוח?":"הסרה"}</button></div></div></div>`;
   const kindTag=t.kind==="bring"?`<span class="tag bring">להביא</span>`:t.kind==="classwork"?`<span class="tag cls">מהכיתה – לבדוק</span>`:"";
@@ -517,7 +522,7 @@ async function manualAdd(){
   const dup=findDup(subject,text,d.lessonDate);
   if(dup&&manualForce!==text){manualForce=text;$("#mWarn").innerHTML=`כבר ברשימה: ${esc(dup.subject)} – ${esc(dup.text)}${dup.done?" (סומן כבוצע)":""}. ללחוץ שוב על "הוספה" כדי להוסיף בכל זאת.`;return}
   manualForce=null;
-  try{await addTasks([{subject,kind,text,dueDate:due||d.dueDate,lessonDate:d.lessonDate}]);$("#mText").value="";$("#mWarn").textContent="";toast("נוסף")}catch(e){toast("לא נשמר")}
+  try{await addTasks([{subject,kind,text,dueDate:due||d.dueDate,lessonDate:d.lessonDate,givenDate:today()}]);$("#mText").value="";$("#mWarn").textContent="";toast("נוסף")}catch(e){toast("לא נשמר")}
 }
 async function importSeed(){
   const seed=[
