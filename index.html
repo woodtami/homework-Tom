@@ -428,16 +428,15 @@ ${tt}
 סוגי צילומי מסך מאפליקציית בית הספר:
 - "תכנון שבועי": טבלה של שיעורי יום מסוים, עם נושא השיעור והציוד הקבוע לאותו שיעור (למשל "האם צמחים זקוקים לאור? הביאו מחברת וספר פלאטבע"). זה תכנון, לא שיעורי בית – בדרך כלל אין ממנו מה לחלץ. חלץ ממנו רק אם כתוב במפורש שיעורי בית או משהו מיוחד להכין/להביא לאותו שיעור, ואז lessonDate = תאריך היום שבטבלה.
 - "נושאי שיעור ושיעורי-בית": רק השורות שמתחילות ב"שיעורי בית:" הן משימות. הן ניתנו בתאריך של אותו יום → dateInImage = התאריך הזה, lessonDate = null. "נושא שיעור:" זה לא משימה.
-חלץ שלושה סוגי משימות:
-- homework: שיעורי בית, "לסיים בבית", דפי עבודה להשלים, "מי שלא סיים…".
-- classwork: עבודה מוגדרת שנעשתה בכיתה (עמודים, דף עבודה, תרגילים), למשל "בכיתה – עמ' 19". אם אותה עבודה כתובה גם "לסיים בבית" – רק homework.
-- bring: פריטים מיוחדים להביא (לא הציוד הקבוע).
-אל תכלול: נושאי שיעור, שאלות שהן כותרת של שיעור, ציוד קבוע שחוזר כל שבוע ("נא להביא מחברת…", "הביאו מחברת וספר…", "ספר קריאה הוא ציוד חובה", נעליים סגורות לחווה, ספרים ומחברות של המקצוע). אם אין משימות – החזר items ריק.
+חלץ רק שני סוגים – וכל דבר אחר התעלם ממנו:
+- homework: שיעורי בית, "לסיים בבית", דפי עבודה להשלים בבית, "מי שלא סיים…".
+- classwork: עבודה מוגדרת שנעשתה בכיתה וצריך לוודא שהושלמה (עמודים, דף עבודה, תרגילים), למשל "בכיתה – עמ' 19". אם אותה עבודה כתובה גם "לסיים בבית" – רק homework.
+התעלם מכל השאר: נושאי שיעור, שאלות שהן כותרת של שיעור, הודעות כלליות, ציוד להביא (קבוע או מיוחד), "נא להביא…", "הביאו…", בחירות, טיולים, תזכורות. אם אין משימות – החזר items ריק.
 subject: אחד מ: ${SUBJECTS.join(", ")} (גאומטריה = מתמטיקה; לשון = שפה).
 text: קצר וברור בעברית, למשל "עמ' 41–42 – לסיים בבית".
 lessonDate: תאריך השיעור שבו מגישים, רק אם נכתב במפורש כתאריך, אחרת null.
 ${pendingText.trim()?`טקסט ההודעה:\n"""\n${pendingText.trim()}\n"""\n`:""}
-החזר JSON בלבד: {"items":[{"subject":"","text":"","kind":"homework|classwork|bring","image":1,"dateInImage":null,"lessonDate":null}]}`;
+החזר JSON בלבד: {"items":[{"subject":"","text":"","kind":"homework|classwork","image":1,"dateInImage":null,"lessonDate":null}]}`;
 }
 async function pickModels(){
   const cached=store.get("gmodel");
@@ -487,7 +486,7 @@ async function readInput(){
       const subject=normSubject(it.subject),okD2=normDate,okD=x=>{const d=normDate(x);return d&&d<=today()?d:null},img=pendingImgs[(Number(it.image)||0)-1]||(pendingImgs.length===1&&!pendingText.trim()?pendingImgs[0]:null),inImg=okD(it.dateInImage),from=(img&&img.manual?img.date:null)||inImg||(img&&img.date)||srcDate,dateSrc=img&&img.manual?"manual":inImg?"image":img?"file":"text",lesson=okD2(it.lessonDate)&&okD2(it.lessonDate)>from?okD2(it.lessonDate):null,d=computeDates(subject,from,lesson),text=(it.text||"").trim();
       const n=s=>(s||"").replace(/[^֐-׿a-z0-9]/gi,"");
       const dup=findDup(subject,text,d.lessonDate)||null;
-      return{subject,text,kind:["bring","classwork"].includes(it.kind)?it.kind:"homework",...d,dup,sourceDate:from,dateSrc};
+      return{subject,text,kind:it.kind==="classwork"?"classwork":"homework",...d,dup,sourceDate:from,dateSrc};
     });
   }catch(e){
     console.error(e);
