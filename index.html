@@ -94,7 +94,7 @@ textarea{min-height:60px;resize:vertical}
 .err{color:var(--late);font-size:.9rem;margin-top:8px}
 .daytitle{display:flex;align-items:center;justify-content:space-between;gap:8px}
 .arrows{display:flex;gap:6px;flex:none}
-.arrow{width:40px;height:40px;flex:none;border-radius:50%;border:2px solid var(--line);background:#fff;color:var(--accent);font-size:1.6rem;line-height:1;cursor:pointer;padding:0 0 4px}
+.arrow{width:40px;height:40px;flex:none;border-radius:50%;border:2px solid var(--line);background:#fff;color:var(--accent);cursor:pointer;padding:0;display:grid;place-items:center}
 .arrow:disabled{opacity:.25}
 .bagday{font-size:1.25rem;font-weight:700;margin:0 6px 12px}
 .bagsub{background:var(--card);border-radius:16px;padding:14px 16px;margin-bottom:10px;box-shadow:0 1px 3px rgba(0,0,0,.05)}
@@ -317,7 +317,7 @@ function viewBag(){
   const general=bringAll.filter(t=>!subs.includes(t.subject));
   let h=`<div class="bagday daytitle">
     <span>מה להביא ביום ${DAYS[dow(day)]} ${dm(day)}</span>
-    <span class="arrows"><button class="arrow" aria-label="יום קודם" ${i===0?"disabled":""} onclick="bagDay='${days[Math.max(0,i-1)]}';render()">›</button><button class="arrow" aria-label="יום הבא" onclick="bagDay='${days[Math.min(days.length-1,i+1)]}';render()">‹</button></span></div>`;
+    <span class="arrows"><button class="arrow" aria-label="יום קודם" ${i===0?"disabled":""} onclick="bagDay='${days[Math.max(0,i-1)]}';render()"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 6 15 12 9 18"/></svg></button><button class="arrow" aria-label="יום הבא" onclick="bagDay='${days[Math.min(days.length-1,i+1)]}';render()"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 6 9 12 15 18"/></svg></button></span></div>`;
   if(bringAll.length)h+=`<div class="bagsub bagspecial"><div class="bagname">דברים נוספים להביא</div>${bringAll.map(bringLine).join("")}</div>`;
   let groups=subs.map(x=>({name:x,subs:[x]}));
   if(subs.includes("מתמטיקה")&&subs.includes("גאומטריה")){
