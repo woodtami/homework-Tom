@@ -291,11 +291,6 @@ function viewBag(){
       ${todo.map(t=>`<div class="bagwarn">לגמור: ${esc(t.text)}</div>`).join("")}</div>`;
   }).join("");
   if(isParent()){
-    h+=`<div class="card" style="margin-top:18px"><h3>להוסיף משהו להביא</h3><p class="hint">למשל חולצה לבנה, מצרכים לבישול. תום יראה את זה ב"מה להביא" של אותו יום.</p>
-      <input id="nbText" placeholder="מה להביא?">
-      <div class="row"><label class="f">ליום<select id="nbDay">${days.map(d=>`<option value="${d}" ${d===day?"selected":""}>${DAYS[dow(d)]} ${dm(d)}</option>`).join("")}</select></label>
-      <label class="f">מקצוע<select id="nbSub">${["כללי",...SUBJECTS.filter(x=>x!=="אחר")].map(x=>`<option>${x}</option>`).join("")}</select></label></div>
-      <div class="row"><button class="btn" onclick="addBring()">שמירה</button></div></div>`;
     h+=`<details class="card"><summary style="cursor:pointer;font-weight:700">מערכת השעות</summary><table class="tt" style="margin-top:10px"><tr>${[0,1,2,3,4,5].map(d=>`<th>${DAYS[d]}</th>`).join("")}</tr><tr>${[0,1,2,3,4,5].map(i=>`<td>${TT[i].join("<br>")}</td>`).join("")}</tr></table></details>`;
   }
   return h;
@@ -303,7 +298,7 @@ function viewBag(){
 async function addBring(){
   const text=$("#nbText").value.trim(),lessonDate=$("#nbDay").value,subject=$("#nbSub").value;
   if(!text){toast("כתבו מה להביא");return}
-  try{await addTasks([{subject,kind:"bring",text,lessonDate,dueDate:addDays(lessonDate,-1)}]);bagDay=lessonDate;toast("נשמר");render()}catch(e){toast("לא נשמר")}
+  try{await addTasks([{subject,kind:"bring",text,lessonDate,dueDate:addDays(lessonDate,-1)}]);bagDay=lessonDate;$("#nbText").value="";toast(`נשמר – יופיע ב"מה להביא" ליום ${DAYS[dow(lessonDate)]}`)}catch(e){toast("לא נשמר")}
 }
 async function saveBring(id){
   const t=tasks.find(x=>x.id===id);
@@ -312,7 +307,7 @@ async function saveBring(id){
   try{await sb("tasks?id=eq."+encodeURIComponent(id),{method:"PATCH",body:JSON.stringify({text:t.text,subject:t.subject,lesson_date:t.lessonDate,due_date:t.dueDate})})}catch(e){toast("לא נשמר");load()}
 }
 function viewAdd(){
-  if(!gkey)return `<div class="card"><h3>צריך מפתח Gemini</h3><p class="hint">כדי לקרוא תמונות צריך להכניס מפתח בהגדרות (⚙︎).</p><button class="btn" onclick="go('settings')">להגדרות</button></div>`+manualCard();
+  if(!gkey)return `<div class="card"><h3>צריך מפתח Gemini</h3><p class="hint">כדי לקרוא תמונות צריך להכניס מפתח בהגדרות (⚙︎).</p><button class="btn" onclick="go('settings')">להגדרות</button></div>`+manualCard()+bringCard();
   let h=`<div class="card"><h3>תמונה או הודעה</h3>
     <p class="hint">צילום לוח, צילומי מסך מהאפליקציה, או הדבקת טקסט של הודעה. לפני השמירה אפשר לתקן.</p>
     <div class="drop" onclick="$('#file').click()">לחצו לבחירת תמונות<input type="file" id="file" accept="image/*" multiple hidden onchange="addFiles(this.files)"></div>
@@ -333,10 +328,18 @@ function viewAdd(){
       <div class="x">${r.dup?"נראה שכבר קיים ברשימה":""}<button class="icon" onclick="reviewing.splice(${i},1);render()">הסרה</button></div></div>`).join(""):`<p class="hint">לא נמצאו משימות.</p>`}
     <div class="row"><button class="btn" onclick="saveReview()" ${!reviewing.length?"disabled":""}>שמירה לרשימה</button><button class="btn ghost" onclick="reviewing=null;render()">ביטול</button></div></div>`;
   }
-  return h+manualCard();
+  return h+manualCard()+bringCard();
+}
+function bringCard(){
+  const days=schoolDays(12);
+  return `<div class="card"><h3>להוסיף משהו להביא</h3><p class="hint">למשל חולצה לבנה, מצרכים לבישול. יופיע בלשונית "מה להביא" של אותו יום.</p>
+    <input id="nbText" placeholder="מה להביא?">
+    <div class="row"><label class="f">ליום<select id="nbDay">${days.map(d=>`<option value="${d}">${DAYS[dow(d)]} ${dm(d)}</option>`).join("")}</select></label>
+    <label class="f">מקצוע<select id="nbSub">${["כללי",...SUBJECTS.filter(x=>x!=="אחר")].map(x=>`<option>${x}</option>`).join("")}</select></label></div>
+    <div class="row"><button class="btn" onclick="addBring()">שמירה</button></div></div>`;
 }
 function manualCard(){
-  return `<div class="card"><h3>הוספה ידנית</h3><div class="row" style="margin-top:0">
+  return `<div class="card"><h3>להוסיף משימה</h3><div class="row" style="margin-top:0">
     <label class="f">מקצוע<select id="mSub">${SUBJECTS.map(s=>`<option>${s}</option>`).join("")}</select></label>
     <label class="f">סוג<select id="mKind"><option value="homework">ש.ב</option><option value="classwork">בכיתה</option></select></label>
     <label class="f">לסיים עד (ריק = לפי המערכת)<input type="date" id="mDue"></label></div>
