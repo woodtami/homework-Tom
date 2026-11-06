@@ -23,7 +23,7 @@ header h1{margin:0;font-size:1.35rem;font-weight:700}
 header .sub{opacity:.9;font-size:.85rem;margin-top:2px}
 .gear{background:rgba(255,255,255,.18);border:0;color:#fff;font-size:1.3rem;width:44px;height:44px;border-radius:50%;cursor:pointer}
 nav{position:fixed;bottom:0;left:0;right:0;background:#fff;border-top:1px solid var(--line);display:flex;padding:6px 6px calc(6px + env(safe-area-inset-bottom));z-index:5}
-nav button{flex:1;background:none;border:0;font:inherit;color:var(--muted);display:flex;flex-direction:column;align-items:center;gap:2px;padding:6px 0;border-radius:14px;cursor:pointer;font-size:.8rem}
+nav button{flex:1;background:none;border:0;font:inherit;color:var(--muted);padding:14px 0;border-radius:14px;cursor:pointer;font-size:.95rem}
 nav button .ic{font-size:1.5rem;line-height:1}
 nav button.on{color:var(--accent);background:var(--accent-soft);font-weight:700}
 main{max-width:640px;margin:0 auto;padding:16px 14px 20px}
@@ -52,7 +52,7 @@ main{max-width:640px;margin:0 auto;padding:16px 14px 20px}
 .tag.cls{background:#e0f5f2;color:#0f766e}
 .who-done{font-size:.8rem;color:var(--muted);margin-top:4px}
 .tools{display:flex;flex-direction:column;gap:2px}
-.icon{background:none;border:0;cursor:pointer;color:var(--muted);font-size:1.1rem;padding:6px;border-radius:8px}
+.icon{background:none;border:0;cursor:pointer;color:var(--muted);font:inherit;font-size:.8rem;padding:6px;border-radius:8px}
 .card{background:var(--card);border-radius:18px;padding:16px;margin-bottom:14px;box-shadow:0 1px 3px rgba(0,0,0,.05)}
 .card h3{margin:0 0 6px;font-size:1.1rem}
 .hint{font-size:.9rem;color:var(--muted);margin:0 0 12px}
@@ -71,6 +71,11 @@ textarea{min-height:60px;resize:vertical}
 .rev .x{grid-column:1/-1;display:flex;justify-content:space-between;align-items:center;font-size:.85rem;color:var(--muted)}
 .err{color:var(--late);font-size:.9rem;margin-top:8px}
 .bagday{font-size:1.25rem;font-weight:700;margin:0 6px 12px}
+.bagsub{background:var(--card);border-radius:16px;padding:14px 16px;margin-bottom:10px;box-shadow:0 1px 3px rgba(0,0,0,.05)}
+.bagname{font-weight:700;font-size:1.1rem;margin-bottom:4px}
+.bagitems{font-size:1.05rem}
+.bagextra{margin-top:8px;font-weight:700;color:#6b2a92;background:#f7eefc;padding:6px 10px;border-radius:10px}
+.bagwarn{margin-top:8px;font-weight:700;color:var(--late);background:var(--late-soft);padding:6px 10px;border-radius:10px}
 .bagitem{background:var(--card);border-radius:16px;padding:12px 14px;margin-bottom:8px;display:flex;gap:12px;align-items:center;box-shadow:0 1px 3px rgba(0,0,0,.05);font-size:1.05rem}
 .bagitem .emo{font-size:1.4rem}
 .bagitem small{display:block;color:var(--muted);font-size:.85rem}
@@ -106,9 +111,9 @@ const TT = {
 };
 const SUBJECTS = ["מתמטיקה","שפה","מדעים","תורה","אנגלית","אנגלית פרטי","מולדת","שבילי מורשת","כישורי חיים","מפתח הלב","חווה חקלאית","בישול","חנ\"ג","מוזיקה","אחר"];
 const BAG = {
-  "מתמטיקה":["מחברת מתמטיקה","מחברת גאומטריה","חוברת השבחה מס' 1"],
+  "מתמטיקה":["מחברת מתמטיקה","מחברת גאומטריה","חוברת השבחה 1"],
   "שפה":["מחברת שפה","חוברת עולמות","ספר קריאה","קלסר מנילה"],
-  "מדעים":["מחברת מדעים","ספר פלאטבע"],
+  "מדעים":["מחברת מדעים","ספר מדעים"],
   "תורה":["מחברת תורה","חומש בראשית"],
   "אנגלית":["Jet 1 Book","Alphabet Workbook","מחברת אנגלית"],
   "מולדת":["מחברת מולדת","ספר מולדת"],
@@ -116,13 +121,11 @@ const BAG = {
   "כישורי חיים":["מחברת שורות"],
   "מפתח הלב":["מחברת שורות"],
   "חווה חקלאית":["נעליים סגורות","תיק קטן עם בקבוק מים"],
-  "בישול":["הדבר שצריך להביא לבישול (ראו למעלה)"],
+  "בישול":[],
   "חנ\"ג":["בגדי ספורט ובקבוק מים"],
   "מוזיקה":[]
 };
 const NOT_BAG = ["אנגלית פרטי"];
-const EMO = {"מתמטיקה":"🔢","שפה":"📖","מדעים":"🔬","תורה":"📜","אנגלית":"🔤","אנגלית פרטי":"🔤","מולדת":"🗺️","שבילי מורשת":"🏛️","כישורי חיים":"💬","מפתח הלב":"❤️","חווה חקלאית":"🌱","בישול":"🍳","חנ\"ג":"⚽","מוזיקה":"🎵","אחר":"📌"};
-const emo=s=>EMO[s]||"📌";
 const DAYS = ["ראשון","שני","שלישי","רביעי","חמישי","שישי","שבת"];
 const DSHORT = ["א׳","ב׳","ג׳","ד׳","ה׳","ו׳","ש׳"];
 const WHO = ["אמא","אבא","תום"];
@@ -232,44 +235,47 @@ function taskHtml(t){
     <textarea name="text">${esc(t.text)}</textarea>
     <label class="f">לסיים עד<input type="date" name="due" value="${t.dueDate||""}"></label>
     <div class="row" style="margin:0"><button class="btn" onclick="saveEdit('${t.id}')">שמירה</button><button class="btn ghost" onclick="editId=null;render()">ביטול</button></div></div></div>`;
-  const kindTag=t.kind==="bring"?`<span class="tag bring">🎒 להביא</span>`:t.kind==="classwork"?`<span class="tag cls">🏫 מהכיתה – לבדוק</span>`:"";
+  const kindTag=t.kind==="bring"?`<span class="tag bring">להביא</span>`:t.kind==="classwork"?`<span class="tag cls">מהכיתה – לבדוק</span>`:"";
   return `<div class="task ${t.done?"done":""}">
     <button class="chk" aria-label="סימון" onclick="toggle('${t.id}')">${t.done?"✓":""}</button>
-    <div class="emo">${emo(t.subject)}</div>
     <div class="body"><div class="subj">${esc(t.subject)}</div>
       <div class="txt">${esc(t.text)}</div>
-      ${t.done?(t.doneBy?`<div class="who-done">✓ ${esc(t.doneBy)}</div>`:""):`<span class="tag ${dueCls(t.dueDate)}">${relDay(t.dueDate)}</span>${kindTag}`}</div>
-    ${isParent()?`<div class="tools"><button class="icon" onclick="editId='${t.id}';render()">✎</button><button class="icon" onclick="removeTask('${t.id}')">${confirmId===t.id?"<span style='color:var(--late);font-size:.8rem'>למחוק?</span>":"🗑"}</button></div>`:""}
+      ${t.done?(t.doneBy?`<div class="who-done">סימן/ה: ${esc(t.doneBy)}</div>`:""):`<span class="tag ${dueCls(t.dueDate)}">${relDay(t.dueDate)}</span>${kindTag}`}</div>
+    ${isParent()?`<div class="tools"><button class="icon" onclick="editId='${t.id}';render()">עריכה</button><button class="icon" onclick="removeTask('${t.id}')">${confirmId===t.id?"<span style='color:var(--late)'>בטוח?</span>":"מחיקה"}</button></div>`:""}
   </div>`;
 }
 function viewOpen(){
   const open=tasks.filter(t=>!t.done).sort((a,b)=>(a.dueDate||"").localeCompare(b.dueDate||""));
-  if(!open.length)return `<div class="empty"><span class="big">🎉</span><b>כל הכבוד!</b>אין שיעורים פתוחים</div>`;
+  if(!open.length)return `<div class="empty"><b>כל הכבוד!</b>אין שיעורים פתוחים</div>`;
   const td=today(),tm=addDays(td,1);
-  const banner=`<div class="banner"><span class="big">${open.length>3?"💪":"⭐"}</span>נשארו ${open.length} ${open.length===1?"משימה":"משימות"}</div>`;
-  return banner+[{c:"late",t:"⏰ עבר הזמן",f:t=>t.dueDate<td},{c:"today",t:"היום",f:t=>t.dueDate===td},{c:"",t:"מחר",f:t=>t.dueDate===tm},{c:"",t:"אחר כך",f:t=>t.dueDate>tm}]
+  const banner=`<div class="banner">נשארו ${open.length} ${open.length===1?"משימה":"משימות"}</div>`;
+  return banner+[{c:"late",t:"עבר הזמן",f:t=>t.dueDate<td},{c:"today",t:"היום",f:t=>t.dueDate===td},{c:"",t:"מחר",f:t=>t.dueDate===tm},{c:"",t:"אחר כך",f:t=>t.dueDate>tm}]
     .map(g=>{const l=open.filter(g.f);return l.length?`<section class="group ${g.c}"><h2>${g.t}</h2>${l.map(taskHtml).join("")}</section>`:""}).join("");
 }
 function viewDone(){
   const done=tasks.filter(t=>t.done).sort((a,b)=>(b.doneAt||"").localeCompare(a.doneAt||""));
-  return done.length?`<section class="group">${done.slice(0,60).map(taskHtml).join("")}</section>`:`<div class="empty"><span class="big">📋</span>עוד לא סימנת כלום</div>`;
+  return done.length?`<section class="group">${done.slice(0,60).map(taskHtml).join("")}</section>`:`<div class="empty">עוד לא סומן כלום</div>`;
 }
 function viewBag(){
   const day=nextSchoolDay(today());
   const subs=[...new Set(TT[dow(day)]||[])].filter(x=>!NOT_BAG.includes(x));
-  const bring=tasks.filter(t=>t.kind==="bring"&&t.lessonDate===day);
-  const ready=tasks.filter(t=>t.kind!=="bring"&&t.lessonDate===day&&!t.done&&!NOT_BAG.includes(t.subject));
-  let h=`<div class="bagday">🎒 התיק ליום ${DAYS[dow(day)]}</div>`;
-  h+=bring.map(t=>`<div class="bagitem extra"><span class="emo">⭐</span><div>${esc(t.text)}<small>${esc(t.subject)}</small></div></div>`).join("");
-  h+=ready.map(t=>`<div class="bagitem warn"><span class="emo">⚠️</span><div>לגמור: ${esc(t.text)}<small>${esc(t.subject)}</small></div></div>`).join("");
-  const items=[];subs.forEach(s=>(BAG[s]||[]).forEach(i=>{if(!items.some(x=>x.i===i))items.push({s,i})}));
-  h+=items.map(x=>`<div class="bagitem"><span class="emo">${emo(x.s)}</span><div>${esc(x.i)}</div></div>`).join("");
+  let h=`<div class="bagday">מה להביא ביום ${DAYS[dow(day)]}</div>`;
+  h+=subs.map(s=>{
+    const items=BAG[s]||[];
+    const bring=tasks.filter(t=>t.kind==="bring"&&t.lessonDate===day&&t.subject===s);
+    const todo=tasks.filter(t=>t.kind!=="bring"&&t.lessonDate===day&&t.subject===s&&!t.done);
+    if(!items.length&&!bring.length&&!todo.length)return "";
+    return `<div class="bagsub"><div class="bagname">${s}</div>
+      ${items.length?`<div class="bagitems">${items.map(esc).join(" · ")}</div>`:""}
+      ${bring.map(t=>`<div class="bagextra">להביא גם: ${esc(t.text)}</div>`).join("")}
+      ${todo.map(t=>`<div class="bagwarn">לגמור: ${esc(t.text)}</div>`).join("")}</div>`;
+  }).join("");
   if(isParent())h+=`<details class="card" style="margin-top:18px"><summary style="cursor:pointer;font-weight:700">מערכת השעות</summary><table class="tt" style="margin-top:10px"><tr>${[0,1,2,3,4,5].map(d=>`<th>${DAYS[d]}</th>`).join("")}</tr><tr>${[0,1,2,3,4,5].map(i=>`<td>${TT[i].join("<br>")}</td>`).join("")}</tr></table></details>`;
   return h;
 }
 function viewAdd(){
   if(!gkey)return `<div class="card"><h3>צריך מפתח Gemini</h3><p class="hint">כדי לקרוא תמונות צריך להכניס מפתח בהגדרות (⚙︎).</p><button class="btn" onclick="go('settings')">להגדרות</button></div>`+manualCard();
-  let h=`<div class="card"><h3>📸 תמונה או הודעה</h3>
+  let h=`<div class="card"><h3>תמונה או הודעה</h3>
     <p class="hint">צילום לוח, צילומי מסך מהאפליקציה, או הדבקת טקסט של הודעה. לפני השמירה אפשר לתקן.</p>
     <div class="drop" onclick="$('#file').click()">לחצו לבחירת תמונות<input type="file" id="file" accept="image/*" multiple hidden onchange="addFiles(this.files)"></div>
     <div class="thumbs">${pendingImgs.map(p=>`<img src="${p.url}" alt="">`).join("")}</div>
@@ -286,18 +292,18 @@ function viewAdd(){
       <textarea oninput="reviewing[${i}].text=this.value">${esc(r.text)}</textarea>
       <label class="f">לסיים עד<input type="date" value="${r.dueDate}" onchange="reviewing[${i}].dueDate=this.value"></label>
       <label class="f">שיעור הבא<input type="date" value="${r.lessonDate}" onchange="reviewing[${i}].lessonDate=this.value"></label>
-      <div class="x">${r.dup?"⚠️ נראה שכבר קיים ברשימה":""}<button class="icon" onclick="reviewing.splice(${i},1);render()">🗑 הסרה</button></div></div>`).join(""):`<p class="hint">לא נמצאו משימות.</p>`}
+      <div class="x">${r.dup?"נראה שכבר קיים ברשימה":""}<button class="icon" onclick="reviewing.splice(${i},1);render()">הסרה</button></div></div>`).join(""):`<p class="hint">לא נמצאו משימות.</p>`}
     <div class="row"><button class="btn" onclick="saveReview()" ${!reviewing.length?"disabled":""}>שמירה לרשימה</button><button class="btn ghost" onclick="reviewing=null;render()">ביטול</button></div></div>`;
   }
   return h+manualCard();
 }
 function manualCard(){
-  return `<div class="card"><h3>✍️ הוספה ידנית</h3><div class="row" style="margin-top:0">
+  return `<div class="card"><h3>הוספה ידנית</h3><div class="row" style="margin-top:0">
     <label class="f">מקצוע<select id="mSub">${SUBJECTS.map(s=>`<option>${s}</option>`).join("")}</select></label>
     <label class="f">סוג<select id="mKind"><option value="homework">ש.ב</option><option value="classwork">בכיתה</option><option value="bring">להביא</option></select></label>
     <label class="f">לסיים עד (ריק = לפי המערכת)<input type="date" id="mDue"></label></div>
     <div class="row"><textarea id="mText" placeholder="למשל: עמ' 41–42"></textarea></div>
-    <div class="row"><button class="btn" onclick="manualAdd()">הוספה</button><button class="btn ghost" onclick="$('#mSub').value='בישול';$('#mKind').value='bring';$('#mText').focus()">🍳 מה להביא לבישול</button></div></div>`;
+    <div class="row"><button class="btn" onclick="manualAdd()">הוספה</button><button class="btn ghost" onclick="$('#mSub').value='בישול';$('#mKind').value='bring';$('#mText').focus()">מה להביא לבישול</button></div></div>`;
 }
 function viewSettings(){
   return `<div class="card"><h3>מי משתמש בטלפון הזה?</h3><div class="who">${WHO.map(w=>`<button class="btn ${w===who?"":"ghost"}" onclick="setWho('${w}')">${w}</button>`).join("")}</div></div>
@@ -312,8 +318,8 @@ function viewNoLink(){
   return `<div class="card"><h3>חסר קישור משפחתי</h3><p class="hint">פתחו את האפליקציה מהקישור המלא שקיבלתם (בווטסאפ), פעם אחת. אחרי זה היא תיזכר.</p></div>`;
 }
 function navHtml(){
-  const tabs=[["open","📋","משימות"],["bag","🎒","תיק"],...(isParent()?[["add","➕","הוספה"]]:[]),["done","✅","בוצע"]];
-  return tabs.map(([v,ic,l])=>`<button class="${v===view?"on":""}" onclick="go('${v}')"><span class="ic">${ic}</span>${l}</button>`).join("");
+  const tabs=[["open","משימות"],["bag","מה להביא"],...(isParent()?[["add","הוספה"]]:[]),["done","בוצע"]];
+  return tabs.map(([v,l])=>`<button class="${v===view?"on":""}" onclick="go('${v}')">${l}</button>`).join("");
 }
 function go(v){view=v;render();window.scrollTo(0,0)}
 function render(){
