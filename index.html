@@ -285,10 +285,9 @@ function viewOpen(){
   const td=today(),tm=addDays(td,1);
   const open=tasks.filter(t=>!t.done&&t.kind!=="bring").sort((a,b)=>(a.dueDate||"").localeCompare(b.dueDate||""));
   if(!open.length)return `<div class="empty"><b>כל הכבוד!</b>אין שיעורים פתוחים</div>`;
-  const banner=`<div class="banner">נשארו ${open.length} ${open.length===1?"משימה":"משימות"}</div>`;
   const groups=[{c:"late",t:"עבר הזמן – לסיים עכשיו",f:t=>t.dueDate<td},{c:"today",t:`לסיים היום (${DAYS[dow(td)]} ${dm(td)})`,f:t=>t.dueDate===td},{c:"",t:`לסיים עד מחר (${DAYS[dow(tm)]} ${dm(tm)})`,f:t=>t.dueDate===tm}];
   [...new Set(open.filter(t=>t.dueDate>tm).map(t=>t.dueDate))].forEach(d=>groups.push({c:"",t:`לסיים עד יום ${DAYS[dow(d)]} ${dm(d)}`,f:t=>t.dueDate===d}));
-  return banner+groups.map(g=>{const l=open.filter(g.f);return l.length?`<section class="group ${g.c}"><h2>${g.t}</h2>${l.map(taskHtml).join("")}</section>`:""}).join("");
+  return groups.map(g=>{const l=open.filter(g.f);return l.length?`<section class="group ${g.c}"><h2>${g.t}</h2>${l.map(taskHtml).join("")}</section>`:""}).join("");
 }
 function viewDone(){
   const done=tasks.filter(t=>t.done&&t.kind!=="bring").sort((a,b)=>(b.doneAt||"").localeCompare(a.doneAt||""));
