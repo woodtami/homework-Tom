@@ -333,8 +333,8 @@ function viewAdd(){
       <div class="drop" onclick="$('#filePhoto').click()">תמונה רגילה (לוח, ווטסאפ)<small>תבחרו את התאריך</small><input type="file" id="filePhoto" accept="image/*" multiple hidden onchange="addFiles(this.files,'photo')"></div>
     </div>
     <div class="thumbs">${pendingImgs.map((p,i)=>`<div class="thumb"><img src="${p.url}" alt="" onclick="openImg(${i})" style="cursor:zoom-in">${p.manual?`<div class="thumbtype">תמונה רגילה – מאיזה יום?</div><input type="date" value="${p.date}" max="${today()}" onchange="pendingImgs[${i}].date=this.value">`:`<div class="thumbtype">מהאפליקציה</div><div class="autodate">תאריך: מהצילום</div>`}<button class="icon" onclick="pendingImgs.splice(${i},1);render()">הסרה</button></div>`).join("")}</div>
-    <div class="row"><textarea id="srcText" placeholder="או הדביקו כאן טקסט של הודעה…" oninput="pendingText=this.value;$('#readBtn').disabled=!(pendingImgs.length||pendingText.trim())">${esc(pendingText)}</textarea></div>
-    <div class="row"><label class="f">מאיזה יום ההודעה? (רק לטקסט)<input type="date" id="srcDate" value="${today()}" max="${today()}"></label></div>
+    <div class="row"><textarea id="srcText" placeholder="או הדביקו כאן טקסט של הודעה (למשל מהמורה הפרטית)…" oninput="pendingText=this.value;$('#readBtn').disabled=!(pendingImgs.length||pendingText.trim());$('#srcDateRow').style.display=pendingText.trim()?'':'none'">${esc(pendingText)}</textarea></div>
+    <div class="row" id="srcDateRow" style="${pendingText.trim()?"":"display:none"}"><label class="f">מאיזה יום ההודעה?<input type="date" id="srcDate" value="${today()}" max="${today()}"></label></div>
     <div class="row"><button class="btn" id="readBtn" onclick="readInput()" ${(!(pendingImgs.length||pendingText.trim())||busy)?"disabled":""}>${busy?"קורא…":"קריאת המשימות"}</button>
     ${(pendingImgs.length||pendingText)&&!busy?`<button class="btn ghost" onclick="clearInput()">ניקוי</button>`:""}</div>
     ${aiErr?`<div class="err">${esc(aiErr)}</div>`:""}</div>`;
