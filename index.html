@@ -64,6 +64,13 @@ main{max-width:640px;margin:0 auto;padding:16px 14px 20px}
 .thumb img{width:100%;height:110px;object-fit:cover;border-radius:8px}
 .thumb input{font-size:.9rem;padding:6px}
 .thumb .icon{align-self:center}
+.lightbox{position:fixed;inset:0;background:rgba(15,18,28,.96);z-index:20;display:flex;flex-direction:column}
+.lb-bar{display:flex;justify-content:space-between;align-items:flex-end;gap:10px;padding:12px 14px;padding-top:max(12px,env(safe-area-inset-top))}
+.lb-bar input{width:auto}
+.lb-img{flex:1;overflow:auto;-webkit-overflow-scrolling:touch;display:flex;align-items:flex-start;justify-content:center;touch-action:pinch-zoom pan-x pan-y}
+.lb-img img{max-width:100%;height:auto;cursor:zoom-in}
+.lb-img img.zoom{max-width:none;width:220%;cursor:zoom-out}
+.lb-hint{color:#aab;text-align:center;font-size:.8rem;margin:6px 0 calc(10px + env(safe-area-inset-bottom))}
 .btn{background:var(--accent);color:#fff;border:0;border-radius:14px;font:inherit;font-weight:700;padding:13px 20px;cursor:pointer;min-height:48px}
 .btn:disabled{opacity:.45;cursor:default}
 .btn.ghost{background:var(--accent-soft);color:var(--accent)}
@@ -319,7 +326,7 @@ function viewAdd(){
     <p class="hint">צילום לוח, צילומי מסך מהאפליקציה, או הדבקת טקסט של הודעה. לפני השמירה אפשר לתקן.</p>
     <div class="drop" onclick="$('#file').click()">לחצו לבחירת תמונות<input type="file" id="file" accept="image/*" multiple hidden onchange="addFiles(this.files)"></div>
     ${pendingImgs.length?`<p class="hint" style="margin:12px 0 0">בדקו את התאריך של כל תמונה – היום שבו קיבלתם אותה:</p>`:""}
-    <div class="thumbs">${pendingImgs.map((p,i)=>`<div class="thumb"><img src="${p.url}" alt=""><input type="date" value="${p.date}" max="${today()}" onchange="pendingImgs[${i}].date=this.value"><button class="icon" onclick="pendingImgs.splice(${i},1);render()">הסרה</button></div>`).join("")}</div>
+    <div class="thumbs">${pendingImgs.map((p,i)=>`<div class="thumb"><img src="${p.url}" alt="" onclick="openImg(${i})" style="cursor:zoom-in"><input type="date" value="${p.date}" max="${today()}" onchange="pendingImgs[${i}].date=this.value"><button class="icon" onclick="pendingImgs.splice(${i},1);render()">הסרה</button></div>`).join("")}</div>
     <div class="row"><textarea id="srcText" placeholder="או הדביקו כאן טקסט של הודעה…" oninput="pendingText=this.value;$('#readBtn').disabled=!(pendingImgs.length||pendingText.trim())">${esc(pendingText)}</textarea></div>
     <div class="row"><label class="f">מאיזה יום ההודעה? (רק לטקסט)<input type="date" id="srcDate" value="${today()}" max="${today()}"></label></div>
     <div class="row"><button class="btn" id="readBtn" onclick="readInput()" ${(!(pendingImgs.length||pendingText.trim())||busy)?"disabled":""}>${busy?"קורא…":"קריאת המשימות"}</button>
@@ -387,6 +394,17 @@ function saveKey(){const v=$("#gk").value.trim();if(!v)return;gkey=v;store.set("
 async function copyLink(){try{await navigator.clipboard.writeText(familyLink());toast("הקישור הועתק")}catch(e){prompt("העתיקו:",familyLink())}}
 
 /* ===== קריאת תמונות עם Gemini ===== */
+function openImg(i){
+  const p=pendingImgs[i];if(!p)return;
+  const o=document.createElement("div");o.className="lightbox";
+  o.innerHTML=`<div class="lb-bar"><button class="btn ghost" id="lbClose">סגירה</button><label class="f" style="flex:none;min-width:0;color:#fff">תאריך התמונה<input type="date" id="lbDate" value="${p.date}" max="${today()}"></label></div>
+    <div class="lb-img"><img src="${p.url}" alt=""></div><p class="lb-hint">אפשר להגדיל באצבעות או בלחיצה על התמונה</p>`;
+  document.body.appendChild(o);document.body.style.overflow="hidden";
+  const img=o.querySelector(".lb-img img");img.onclick=()=>img.classList.toggle("zoom");
+  const close=()=>{p.date=o.querySelector("#lbDate").value||p.date;o.remove();document.body.style.overflow="";render()};
+  o.querySelector("#lbClose").onclick=close;
+  o.querySelector("#lbDate").onchange=e=>{p.date=e.target.value};
+}
 async function addFiles(list){for(const f of [...list].filter(f=>f.type.startsWith("image/"))){const blob=await shrink(f);let date=f.lastModified?iso(new Date(f.lastModified)):today();if(date>today())date=today();pendingImgs.push({blob,url:URL.createObjectURL(blob),date})}render()}
 function clearInput(){pendingImgs=[];pendingText="";reviewing=null;aiErr="";render()}
 function shrink(file){return new Promise(res=>{const img=new Image();img.onload=()=>{const k=Math.min(1,1800/Math.max(img.width,img.height));const c=document.createElement("canvas");c.width=Math.round(img.width*k);c.height=Math.round(img.height*k);c.getContext("2d").drawImage(img,0,0,c.width,c.height);c.toBlob(b=>res(b||file),"image/jpeg",.85)};img.onerror=()=>res(file);img.src=URL.createObjectURL(file)})}
