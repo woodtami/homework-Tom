@@ -339,6 +339,7 @@ function viewAdd(){
       <label class="f">מקצוע<select onchange="revSet(${i},'subject',this.value)">${SUBJECTS.map(s=>`<option ${s===r.subject?"selected":""}>${s}</option>`).join("")}</select></label>
       <label class="f">סוג<select onchange="reviewing[${i}].kind=this.value">${[["homework","ש.ב"],["classwork","בכיתה"],["bring","להביא"]].map(([v,l])=>`<option value="${v}" ${v===r.kind?"selected":""}>${l}</option>`).join("")}</select></label>
       <textarea oninput="reviewing[${i}].text=this.value">${esc(r.text)}</textarea>
+      <label class="f" style="grid-column:1/-1">ניתן ביום<input type="date" value="${r.sourceDate}" max="${today()}" onchange="revSet(${i},'sourceDate',this.value)"></label>
       <label class="f">לסיים עד<input type="date" value="${r.dueDate}" onchange="reviewing[${i}].dueDate=this.value"></label>
       <label class="f">שיעור הבא<input type="date" value="${r.lessonDate}" onchange="reviewing[${i}].lessonDate=this.value"></label>
       <div class="x">${r.dup?"נוסף בכל זאת":""}<button class="icon" onclick="reviewing.splice(${i},1);render()">הסרה</button></div></div>`).join(""):`<p class="hint">לא נמצאו משימות.</p>`}
@@ -414,7 +415,7 @@ function buildPrompt(srcDate){
   return `אתה עוזר להורה לעקוב אחרי שיעורי הבית של ילד בכיתה ד'.
 החומר: תמונות (צילום לוח בכיתה / צילומי מסך מאפליקציית בית הספר) ו/או טקסט של הודעה. הודעה מהמורה של השיעור הפרטי באנגלית – המקצוע "אנגלית פרטי"; מעבודה שנעשתה בשיעור הפרטי עם המורה לא לרשום, רק שיעורי בית.
 היום: ${today()}.
-לפני כל תמונה כתוב התאריך שבו התקבלה. לכל משימה החזר ב-sourceDate את התאריך של התמונה שממנה היא נלקחה – אלא אם בצילום המסך עצמו מופיע תאריך מפורש של השיעור, ואז את התאריך הזה. למשימות מטקסט ההודעה: ${srcDate}.
+התמונות ממוספרות (תמונה 1, תמונה 2...). לכל משימה החזר ב-image את מספר התמונה שממנה נלקחה (או null אם מטקסט ההודעה). אם בצילום מסך מאפליקציית בית הספר מופיע במפורש תאריך של היום שבו ניתנה המשימה (למשל "יום חמישי | 05/11/2026") – החזר אותו ב-dateInImage, אחרת null. אל תנחש תאריכים.
 מערכת השעות:
 ${tt}
 
@@ -425,9 +426,9 @@ ${tt}
 אל תכלול: נושאי שיעור כלליים בלי עבודה מוגדרת, ציוד קבוע שחוזר כל שבוע ("נא להביא מחברת…", "ספר קריאה הוא ציוד חובה", נעליים סגורות לחווה).
 subject: אחד מ: ${SUBJECTS.join(", ")} (גאומטריה = מתמטיקה; לשון = שפה).
 text: קצר וברור בעברית, למשל "עמ' 41–42 – לסיים בבית".
-lessonDate: תאריך השיעור שבו מגישים, רק אם נכתב במפורש, אחרת null. sourceDate: כמתואר למעלה (YYYY-MM-DD).
+lessonDate: תאריך השיעור שבו מגישים, רק אם נכתב במפורש כתאריך, אחרת null.
 ${pendingText.trim()?`טקסט ההודעה:\n"""\n${pendingText.trim()}\n"""\n`:""}
-החזר JSON בלבד: {"items":[{"subject":"","text":"","kind":"homework|classwork|bring","sourceDate":null,"lessonDate":null}]}`;
+החזר JSON בלבד: {"items":[{"subject":"","text":"","kind":"homework|classwork|bring","image":1,"dateInImage":null,"lessonDate":null}]}`;
 }
 async function pickModels(){
   const cached=store.get("gmodel");
@@ -464,10 +465,10 @@ async function readInput(){
   busy=true;aiErr="";render();
   try{
     const parts=[{text:buildPrompt(srcDate)}];
-    for(const [i,p] of pendingImgs.entries()){parts.push({text:`תמונה ${i+1} – התקבלה בתאריך ${p.date}:`});parts.push({inline_data:{mime_type:"image/jpeg",data:await b64(p.blob)}})}
+    for(const [i,p] of pendingImgs.entries()){parts.push({text:`תמונה ${i+1}:`});parts.push({inline_data:{mime_type:"image/jpeg",data:await b64(p.blob)}})}
     const out=await callGemini(parts);
     reviewing=(out.items||[]).map(it=>{
-      const subject=normSubject(it.subject),from=(it.sourceDate&&/^\d{4}-\d\d-\d\d$/.test(it.sourceDate)&&it.sourceDate<=today()?it.sourceDate:null)||(pendingImgs.length===1&&!pendingText.trim()?pendingImgs[0].date:srcDate),d=computeDates(subject,from,it.lessonDate),text=(it.text||"").trim();
+      const subject=normSubject(it.subject),okD=x=>typeof x==="string"&&/^\d{4}-\d\d-\d\d$/.test(x)&&x<=today()?x:null,img=pendingImgs[(Number(it.image)||0)-1]||(pendingImgs.length===1&&!pendingText.trim()?pendingImgs[0]:null),from=okD(it.dateInImage)||(img&&img.date)||srcDate,d=computeDates(subject,from,it.lessonDate),text=(it.text||"").trim();
       const n=s=>(s||"").replace(/[^֐-׿a-z0-9]/gi,"");
       const dup=findDup(subject,text,d.lessonDate)||null;
       return{subject,text,kind:["bring","classwork"].includes(it.kind)?it.kind:"homework",...d,dup,sourceDate:from};
@@ -479,7 +480,7 @@ async function readInput(){
   }
   busy=false;render();
 }
-function revSet(i,k,v){reviewing[i][k]=v;if(k==="subject"){Object.assign(reviewing[i],computeDates(v,reviewing[i].sourceDate||today(),null));render()}}
+function revSet(i,k,v){reviewing[i][k]=v;if(k==="subject"||k==="sourceDate"){Object.assign(reviewing[i],computeDates(reviewing[i].subject,reviewing[i].sourceDate||today(),null));render()}}
 function findDup(subject,text,lessonDate){
   const n=x=>(x||"").replace(/[^\u0590-\u05FFa-z0-9]/gi,"");
   const nums=x=>((x||"").match(/\d+/g)||[]).join(",");
