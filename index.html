@@ -93,6 +93,7 @@ textarea{min-height:60px;resize:vertical}
 .bagsub{background:var(--card);border-radius:16px;padding:14px 16px;margin-bottom:10px;box-shadow:0 1px 3px rgba(0,0,0,.05)}
 .bagname{font-weight:700;font-size:1.1rem;margin-bottom:4px}
 .bagitems{font-size:1.05rem}
+.bagspecial{background:#fffaf0;border:2px solid #f6dfa6}
 .bagextra{margin-top:10px;font-weight:400;color:var(--ink);background:#fff7e0;border-right:4px solid #f0b429;padding:6px 10px;border-radius:8px;display:flex;justify-content:space-between;align-items:center;gap:8px}
 .bagextra .lbl{display:block;font-size:.75rem;color:#9a6b00;font-weight:700}
 .bagwarn{margin-top:8px;font-weight:700;color:var(--late);background:var(--late-soft);padding:6px 10px;border-radius:10px}
@@ -138,8 +139,8 @@ const TT = {
 };
 const SUBJECTS = ["מתמטיקה","גאומטריה","שפה","מדעים","תורה","אנגלית","אנגלית פרטי","מולדת","שבילי מורשת","כישורי חיים","מפתח הלב","חווה חקלאית","בישול","חנ\"ג","מוזיקה","אחר"];
 const BAG = {
-  "מתמטיקה":["מחברת מתמטיקה","ספר לביא","חוברת התוספות (הדקה)"],
-  "גאומטריה":["מחברת גאומטריה","ספר לביא","חוברת התוספות (הדקה)"],
+  "מתמטיקה":["מחברת מתמטיקה","ספר השבחה","חוברת תוספות דקה"],
+  "גאומטריה":["מחברת גאומטריה","ספר השבחה","חוברת תוספות דקה"],
   "שפה":["מחברת שפה","חוברת עולמות","ספר קריאה","קלסר מנילה"],
   "מדעים":["מחברת מדעים","ספר מדעים"],
   "תורה":["מחברת תורה","חומש בראשית"],
@@ -299,7 +300,7 @@ function bringLine(t){
     <div class="row"><label class="f">ליום<select id="ebDay">${schoolDays(12).map(d=>`<option value="${d}" ${d===t.lessonDate?"selected":""}>${DAYS[dow(d)]} ${dm(d)}</option>`).join("")}</select></label>
     <label class="f">מקצוע<select id="ebSub">${["כללי",...SUBJECTS.filter(x=>x!=="אחר")].map(x=>`<option ${x===t.subject?"selected":""}>${x}</option>`).join("")}</select></label></div>
     <div class="row"><button class="btn" onclick="saveBring('${t.id}')">שמירה</button><button class="btn ghost" onclick="editBring=null;render()">ביטול</button><button class="icon" style="margin-inline-start:auto;color:var(--late)" onclick="removeTask('${t.id}')">${confirmId===t.id?"בטוח?":"הסרה"}</button></div></div>`;
-  return `<div class="bagextra"><span><span class="lbl">גם להביא</span>${esc(t.text)}</span>${isParent()?`<button class="icon" onclick="editBring='${t.id}';render()">עריכה</button>`:""}</div>`;
+  return `<div class="bagextra"><span>${t.subject&&t.subject!=="כללי"?`<span class="lbl">${esc(t.subject)}</span>`:""}${esc(t.text)}</span>${isParent()?`<button class="icon" onclick="editBring='${t.id}';render()">עריכה</button>`:""}</div>`;
 }
 function viewBag(){
   const days=schoolDays(12);
@@ -312,16 +313,19 @@ function viewBag(){
     <div class="row" style="margin:-4px 0 12px;justify-content:space-between">
     <button class="btn ghost" style="min-height:40px;padding:8px 14px;${i===0?"visibility:hidden":""}" onclick="bagDay='${days[Math.max(0,i-1)]}';render()">→ יום קודם</button>
     <button class="btn ghost" style="min-height:40px;padding:8px 14px" onclick="bagDay='${days[Math.min(days.length-1,i+1)]}';render()">יום הבא ←</button></div>`;
-  if(general.length)h+=`<div class="bagsub"><div class="bagname">כללי</div>${general.map(bringLine).join("")}</div>`;
-  const seen=new Set();
-  h+=subs.map(s=>{
-    const all=BAG[s]||[];const items=all.filter(x=>!seen.has(x)&&seen.add(x));const shared=all.length-items.length;
-    const bring=bringAll.filter(t=>t.subject===s);
-    const todo=tasks.filter(t=>t.kind!=="bring"&&t.lessonDate===day&&t.subject===s&&!t.done);
-    if(!items.length&&!bring.length&&!todo.length)return "";
-    return `<div class="bagsub"><div class="bagname">${s}</div>
-      ${items.length?`<div class="bagitems">${items.map(esc).join(" · ")}${shared?` <span style="color:var(--muted);font-size:.85rem">(הספר והחוברת – אותם כמו למעלה)</span>`:""}</div>`:""}
-      ${bring.map(bringLine).join("")}
+  if(bringAll.length)h+=`<div class="bagsub bagspecial"><div class="bagname">דברים נוספים להביא</div>${bringAll.map(bringLine).join("")}</div>`;
+  let groups=subs.map(x=>({name:x,subs:[x]}));
+  if(subs.includes("מתמטיקה")&&subs.includes("גאומטריה")){
+    const k=Math.min(subs.indexOf("מתמטיקה"),subs.indexOf("גאומטריה"));
+    groups=groups.filter(g=>!["מתמטיקה","גאומטריה"].includes(g.name));
+    groups.splice(subs.slice(0,k).filter(x=>!["מתמטיקה","גאומטריה"].includes(x)).length,0,{name:"מתמטיקה וגאומטריה",subs:["מתמטיקה","גאומטריה"]});
+  }
+  h+=groups.map(g=>{
+    const items=[...new Set(g.subs.flatMap(x=>BAG[x]||[]))].sort((a,b)=>(b.startsWith("מחברת")?1:0)-(a.startsWith("מחברת")?1:0));
+    const todo=tasks.filter(t=>t.kind!=="bring"&&t.lessonDate===day&&g.subs.includes(t.subject)&&!t.done);
+    if(!items.length&&!todo.length)return "";
+    return `<div class="bagsub"><div class="bagname">${g.name}</div>
+      ${items.length?`<div class="bagitems">${items.map(esc).join(" · ")}</div>`:""}
       ${todo.map(t=>`<div class="bagwarn">לגמור: ${esc(t.text)}</div>`).join("")}</div>`;
   }).join("");
   if(isParent())h+=ttCard();
