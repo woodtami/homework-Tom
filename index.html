@@ -119,8 +119,10 @@ textarea{min-height:60px;resize:vertical}
 .ttbox .ttrow{border-top-color:#d5dae4}
 .ttrow{display:flex;gap:10px;padding:8px 0;border-top:1px solid var(--line);font-size:.95rem}
 .ttrow b{flex:none;width:56px}
-.tt{width:100%;border-collapse:collapse;font-size:.8rem}
-.tt td,.tt th{border:1px solid var(--line);padding:5px;text-align:right;vertical-align:top}
+.ttwrap{overflow-x:auto;margin:0 -6px}
+.tt{width:100%;border-collapse:collapse;font-size:.64rem;table-layout:fixed;line-height:1.25}
+.tt td,.tt th{border:1px solid var(--line);padding:5px 2px;text-align:center;vertical-align:middle;word-break:keep-all;overflow-wrap:normal}
+.tt .ttnum{width:24px;background:#f4f6fb;color:var(--muted)}
 .tt th{background:var(--accent-soft)}
 .who{display:flex;gap:10px}
 .who button{flex:1;font-size:1.2rem;padding:18px 6px}
@@ -137,12 +139,12 @@ textarea{min-height:60px;resize:vertical}
 <script>
 /* ===== מערכת שעות (0=ראשון) ===== */
 const TT = {
-  0:["מדעים","כישורי חיים","שפה","תורה","חווה חקלאית"],
+  0:["מדעים","כישורי חיים","שפה","תורה","חווה חקלאית","חווה חקלאית"],
   1:["שפה","גאומטריה","מתמטיקה","מתמטיקה","שפה","בישול"],
   2:["חנ\"ג","מדעים","מתמטיקה","מתמטיקה","שפה","אנגלית פרטי"],
   3:["אנגלית","מולדת","שפה","תורה","מדעים","שבילי מורשת"],
   4:["חנ\"ג","גאומטריה","שפה","שפה","מפתח הלב"],
-  5:["אנגלית","מוזיקה"]
+  5:["אנגלית","אנגלית","מוזיקה","מוזיקה"]
 };
 const SUBJECTS = ["מתמטיקה","גאומטריה","שפה","מדעים","תורה","אנגלית","אנגלית פרטי","מולדת","שבילי מורשת","כישורי חיים","מפתח הלב","חווה חקלאית","בישול","חנ\"ג","מוזיקה","אחר"];
 const BAG = {
@@ -333,7 +335,6 @@ function viewBag(){
       ${items.length?`<div class="bagitems">${items.map(esc).join(" · ")}</div>`:""}
       ${todo.map(t=>`<div class="bagwarn">לגמור: ${esc(t.text)}</div>`).join("")}</div>`;
   }).join("");
-  if(isParent())h+=ttCard();
   return h;
 }
 async function addBring(){
@@ -391,12 +392,19 @@ function manualCard(){
     <div class="row"><textarea id="mText" placeholder="למשל: עמ' 41–42"></textarea></div>
     <div class="err" id="mWarn"></div><div class="row"><button class="btn" onclick="manualAdd()">הוספה</button></div></div>`;
 }
-function ttCard(){return `<div class="ttsep"><span>מערכת השעות</span></div><details class="ttbox"><summary>הצגת מערכת השעות של השבוע</summary>${[0,1,2,3,4,5].map(d=>`<div class="ttrow"><b>${DAYS[d]}</b><span>${TT[d].join(" · ")}</span></div>`).join("")}</details>`}
+function ttCard(){
+  const school=d=>(TT[d]||[]).filter(x=>!NOT_BAG.includes(x));
+  const n=Math.max(...[0,1,2,3,4,5].map(d=>school(d).length));
+  const rows=Array.from({length:n},(_,k)=>`<tr><th class="ttnum">${k+1}</th>${[0,1,2,3,4,5].map(d=>`<td>${school(d)[k]||""}</td>`).join("")}</tr>`).join("");
+  return `<div class="card"><h3>מערכת השעות</h3><div class="ttwrap"><table class="tt"><thead><tr><th class="ttnum"></th>${[0,1,2,3,4,5].map(d=>`<th>${DAYS[d]}</th>`).join("")}</tr></thead><tbody>${rows}</tbody></table></div>
+    <p class="hint" style="margin:10px 0 0">בנוסף: אנגלית פרטי בימי שלישי אחרי בית הספר.</p></div>`;
+}
 function viewSettings(){
   return `<div class="card"><h3>מי משתמש בטלפון הזה?</h3><div class="who">${WHO.map(w=>`<button class="btn ${w===who?"":"ghost"}" onclick="setWho('${w}')">${w}</button>`).join("")}</div></div>
   ${isParent()?`<div class="card"><h3>מפתח Gemini (לקריאת תמונות)</h3>
     <p class="hint">נשמר רק בטלפון הזה. מקבלים בחינם ב-aistudio.google.com ← Get API key.</p>
     <div class="row"><input id="gk" type="password" style="flex:1" placeholder="${gkey?"•••• שמור":"הדביקו כאן את המפתח"}"><button class="btn" onclick="saveKey()">שמירה</button>${gkey?`<button class="btn ghost" onclick="gkey=null;store.set('gkey',null);render()">מחיקה</button>`:""}</div></div>
+    ${ttCard()}
     <div class="card"><h3>קישור משפחתי</h3><p class="hint">שלחו את הקישור הזה לאבא ולתום (למשל בווטסאפ). מי שיש לו אותו יכול לראות ולסמן – לא לפרסם.</p>
     <div class="row"><button class="btn" onclick="copyLink()">העתקת הקישור</button></div></div>
     ${loaded&&!tasks.length?`<div class="card"><h3>משימות התחלתיות</h3><p class="hint">להעביר את המשימות שהיו בדף הקודם?</p><button class="btn" onclick="importSeed()">העברה</button></div>`:""}`:""}`;
