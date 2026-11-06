@@ -83,6 +83,7 @@ label.f{display:flex;flex-direction:column;font-size:.85rem;color:var(--muted);g
 input,select,textarea{font:inherit;font-size:1rem;border:2px solid var(--line);border-radius:12px;padding:10px;background:#fff;color:var(--ink);width:100%}
 textarea{min-height:60px;resize:vertical}
 .rev{border:2px solid var(--line);border-radius:14px;padding:12px;margin-top:10px;display:grid;gap:8px;grid-template-columns:1fr 1fr}
+.rev>label.f:first-child{grid-column:1/-1}
 .rev textarea{grid-column:1/-1}
 .rev.dupe{background:#f1f3f7;opacity:.8;display:block}
 .rev.dupe .x{display:flex;justify-content:space-between;align-items:center;gap:8px}
@@ -227,7 +228,7 @@ async function removeTask(id){
 }
 async function saveEdit(id){
   const box=document.getElementById("ed-"+id),t=tasks.find(x=>x.id===id);
-  Object.assign(t,{subject:box.querySelector("[name=subject]").value,kind:box.querySelector("[name=kind]").value,text:box.querySelector("[name=text]").value.trim(),dueDate:box.querySelector("[name=due]").value,givenDate:box.querySelector("[name=given]").value||t.givenDate});
+  Object.assign(t,{subject:box.querySelector("[name=subject]").value,text:box.querySelector("[name=text]").value.trim(),dueDate:box.querySelector("[name=due]").value,givenDate:box.querySelector("[name=given]").value||t.givenDate});
   if(t.givenDate)t.lessonDate=computeDates(t.subject,t.givenDate,null).lessonDate;
   editId=null;render();
   try{await sb("tasks?id=eq."+encodeURIComponent(id),{method:"PATCH",body:JSON.stringify({subject:t.subject,kind:t.kind,text:t.text,due_date:t.dueDate,lesson_date:t.lessonDate,...(hasGiven&&t.givenDate?{given_date:t.givenDate}:{})})})}catch(e){toast("לא נשמר");load()}
@@ -253,16 +254,15 @@ function dueCls(d){const td=today();return d<td?"late":d===td?"today":"soon"}
 function taskHtml(t){
   if(editId===t.id)return `<div class="task" id="ed-${t.id}"><div class="body" style="display:grid;gap:8px">
     <select name="subject">${SUBJECTS.map(s=>`<option ${s===t.subject?"selected":""}>${s}</option>`).join("")}</select>
-    <select name="kind">${[["homework","ש.ב"],["classwork","בכיתה"],["bring","להביא"]].map(([v,l])=>`<option value="${v}" ${v===t.kind?"selected":""}>${l}</option>`).join("")}</select>
     <textarea name="text">${esc(t.text)}</textarea>
     <label class="f">ניתן ביום${t.givenDate?"":" <span style='color:var(--muted)'>(לא נשמר במשימה הזו)</span>"}<input type="date" name="given" value="${t.givenDate||""}" max="${today()}" onchange="const f=this.closest('.body');if(this.value){const d=computeDates(f.querySelector('[name=subject]').value,this.value,null);f.querySelector('[name=due]').value=d.dueDate}"></label>
     <label class="f">לסיים עד<input type="date" name="due" value="${t.dueDate||""}"></label>
     <div class="row" style="margin:0"><button class="btn" onclick="saveEdit('${t.id}')">שמירה</button><button class="btn ghost" onclick="editId=null;render()">ביטול</button><button class="icon" style="margin-inline-start:auto;color:var(--late)" onclick="removeTask('${t.id}')">${confirmId===t.id?"בטוח?":"הסרה"}</button></div></div></div>`;
-  const kindTag=t.kind==="bring"?`<span class="tag bring">להביא</span>`:t.kind==="classwork"?`<span class="tag cls">מהכיתה – לבדוק</span>`:"";
+  const kindTag=t.kind==="bring"?`<span class="tag bring">להביא</span>`:"";
   return `<div class="task ${t.done?"done":""}">
     <button class="chk" aria-label="סימון" onclick="toggle('${t.id}')">${t.done?"✓":""}</button>
     <div class="body"><div class="subj">${esc(t.subject)}</div>
-      <div class="txt">${esc(t.text)}</div>
+      <div class="txt">${esc(t.text)}${t.kind==="classwork"&&!/בבית/.test(t.text)?" – לסיים בבית":""}</div>
       ${t.done?(t.doneBy?`<div class="who-done">סימן/ה: ${esc(t.doneBy)}</div>`:""):kindTag}</div>
     ${isParent()?`<div class="tools"><button class="icon" onclick="editId='${t.id}';render()">עריכה</button></div>`:""}
   </div>`;
@@ -348,7 +348,7 @@ function viewAdd(){
     ${reviewing.length?reviewing.map((r,i)=>r.dup&&!r.force?`<div class="rev dupe"><div class="x" style="font-size:1rem;color:var(--ink)"><span><b>${esc(r.subject)}:</b> ${esc(r.text)}</span></div>
       <div class="x"><span>כבר ברשימה${r.dup.done?" (סומן כבוצע)":""} – לא יישמר שוב</span><button class="icon" style="color:var(--accent)" onclick="reviewing[${i}].force=true;render()">להוסיף בכל זאת</button></div></div>`:`<div class="rev">
       <label class="f">מקצוע<select onchange="revSet(${i},'subject',this.value)">${SUBJECTS.map(s=>`<option ${s===r.subject?"selected":""}>${s}</option>`).join("")}</select></label>
-      <label class="f">סוג<select onchange="reviewing[${i}].kind=this.value">${[["homework","ש.ב"],["classwork","בכיתה"],["bring","להביא"]].map(([v,l])=>`<option value="${v}" ${v===r.kind?"selected":""}>${l}</option>`).join("")}</select></label>
+
       <textarea oninput="reviewing[${i}].text=this.value">${esc(r.text)}</textarea>
       <label class="f" style="grid-column:1/-1">ניתן ביום ${r.dateSrc==="image"?"<span style='color:var(--ok)'>(מהתמונה)</span>":r.dateSrc==="manual"?"(לפי מה שבחרתם)":r.dateSrc==="file"?"<span style='color:var(--late)'>(לא נמצא תאריך בתמונה – לבדוק!)</span>":""}<input type="date" value="${r.sourceDate}" max="${today()}" onchange="reviewing[${i}].dateSrc='manual';revSet(${i},'sourceDate',this.value)"></label>
       <label class="f">לסיים עד<input type="date" value="${r.dueDate}" onchange="reviewing[${i}].dueDate=this.value"></label>
@@ -369,7 +369,6 @@ function bringCard(){
 function manualCard(){
   return `<div class="card"><h3>להוסיף משימה</h3><div class="row" style="margin-top:0">
     <label class="f">מקצוע<select id="mSub">${SUBJECTS.map(s=>`<option>${s}</option>`).join("")}</select></label>
-    <label class="f">סוג<select id="mKind"><option value="homework">ש.ב</option><option value="classwork">בכיתה</option></select></label>
     <label class="f">לסיים עד (ריק = לפי המערכת)<input type="date" id="mDue"></label></div>
     <div class="row"><textarea id="mText" placeholder="למשל: עמ' 41–42"></textarea></div>
     <div class="err" id="mWarn"></div><div class="row"><button class="btn" onclick="manualAdd()">הוספה</button></div></div>`;
@@ -435,7 +434,7 @@ ${tt}
 - "נושאי שיעור ושיעורי-בית": רק השורות שמתחילות ב"שיעורי בית:" הן משימות. הן ניתנו בתאריך של אותו יום → dateInImage = התאריך הזה, lessonDate = null. "נושא שיעור:" זה לא משימה.
 חלץ רק שני סוגים – וכל דבר אחר התעלם ממנו:
 - homework: שיעורי בית, "לסיים בבית", דפי עבודה להשלים בבית, "מי שלא סיים…".
-- classwork: עבודה מוגדרת שנעשתה בכיתה וצריך לוודא שהושלמה (עמודים, דף עבודה, תרגילים), למשל "בכיתה – עמ' 19". אם אותה עבודה כתובה גם "לסיים בבית" – רק homework.
+- classwork: עבודה מוגדרת שנעשתה בכיתה (עמודים, דף עבודה, תרגילים), למשל "בכיתה – עמ' 19". תום צריך לסיים בבית מה שלא סיים. text: רק מה העבודה, למשל "עמ' 19".
 התעלם מכל השאר: נושאי שיעור, שאלות שהן כותרת של שיעור, הודעות כלליות, ציוד להביא (קבוע או מיוחד), "נא להביא…", "הביאו…", בחירות, טיולים, תזכורות. אם אין משימות – החזר items ריק.
 subject: אחד מ: ${SUBJECTS.join(", ")} (גאומטריה = מתמטיקה; לשון = שפה).
 text: קצר וברור בעברית, למשל "עמ' 41–42 – לסיים בבית".
@@ -491,7 +490,7 @@ async function readInput(){
       const subject=normSubject(it.subject),okD2=normDate,okD=x=>{const d=normDate(x);return d&&d<=today()?d:null},img=pendingImgs[(Number(it.image)||0)-1]||(pendingImgs.length===1&&!pendingText.trim()?pendingImgs[0]:null),inImg=okD(it.dateInImage),from=(img&&img.manual?img.date:null)||inImg||(img&&img.date)||srcDate,dateSrc=img&&img.manual?"manual":inImg?"image":img?"file":"text",lesson=okD2(it.lessonDate)&&okD2(it.lessonDate)>from?okD2(it.lessonDate):null,d=computeDates(subject,from,lesson),text=(it.text||"").trim();
       const n=s=>(s||"").replace(/[^֐-׿a-z0-9]/gi,"");
       const dup=findDup(subject,text,d.lessonDate)||null;
-      return{subject,text,kind:it.kind==="classwork"?"classwork":"homework",...d,dup,sourceDate:from,dateSrc};
+      return{subject,text:it.kind==="classwork"&&!/בבית/.test(text)?text+" – לסיים בבית":text,kind:"homework",...d,dup,sourceDate:from,dateSrc};
     });
   }catch(e){
     console.error(e);
@@ -516,7 +515,7 @@ async function saveReview(){
 }
 let manualForce=null;
 async function manualAdd(){
-  const subject=$("#mSub").value,kind=$("#mKind").value,text=$("#mText").value.trim(),due=$("#mDue").value;
+  const subject=$("#mSub").value,kind="homework",text=$("#mText").value.trim(),due=$("#mDue").value;
   if(!text){toast("כתבו מה צריך לעשות");return}
   const d=computeDates(subject,today(),null);
   const dup=findDup(subject,text,d.lessonDate);
