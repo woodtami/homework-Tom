@@ -68,6 +68,8 @@ input,select,textarea{font:inherit;font-size:1rem;border:2px solid var(--line);b
 textarea{min-height:60px;resize:vertical}
 .rev{border:2px solid var(--line);border-radius:14px;padding:12px;margin-top:10px;display:grid;gap:8px;grid-template-columns:1fr 1fr}
 .rev textarea{grid-column:1/-1}
+.rev.dupe{background:#f1f3f7;opacity:.8;display:block}
+.rev.dupe .x{display:flex;justify-content:space-between;align-items:center;gap:8px}
 .rev .x{grid-column:1/-1;display:flex;justify-content:space-between;align-items:center;font-size:.85rem;color:var(--muted)}
 .err{color:var(--late);font-size:.9rem;margin-top:8px}
 .bagday{font-size:1.25rem;font-weight:700;margin:0 6px 12px}
@@ -318,15 +320,16 @@ function viewAdd(){
     ${(pendingImgs.length||pendingText)&&!busy?`<button class="btn ghost" onclick="clearInput()">ניקוי</button>`:""}</div>
     ${aiErr?`<div class="err">${esc(aiErr)}</div>`:""}</div>`;
   if(reviewing){
-    h+=`<div class="card"><h3>בדיקה לפני שמירה (${reviewing.length})</h3>
-    ${reviewing.length?reviewing.map((r,i)=>`<div class="rev">
+    h+=`<div class="card"><h3>בדיקה לפני שמירה</h3><p class="hint">${reviewing.filter(r=>!r.dup||r.force).length} חדשות${reviewing.some(r=>r.dup&&!r.force)?` · ${reviewing.filter(r=>r.dup&&!r.force).length} כבר ברשימה`:""}</p>
+    ${reviewing.length?reviewing.map((r,i)=>r.dup&&!r.force?`<div class="rev dupe"><div class="x" style="font-size:1rem;color:var(--ink)"><span><b>${esc(r.subject)}:</b> ${esc(r.text)}</span></div>
+      <div class="x"><span>כבר ברשימה${r.dup.done?" (סומן כבוצע)":""} – לא יישמר שוב</span><button class="icon" style="color:var(--accent)" onclick="reviewing[${i}].force=true;render()">להוסיף בכל זאת</button></div></div>`:`<div class="rev">
       <label class="f">מקצוע<select onchange="revSet(${i},'subject',this.value)">${SUBJECTS.map(s=>`<option ${s===r.subject?"selected":""}>${s}</option>`).join("")}</select></label>
       <label class="f">סוג<select onchange="reviewing[${i}].kind=this.value">${[["homework","ש.ב"],["classwork","בכיתה"],["bring","להביא"]].map(([v,l])=>`<option value="${v}" ${v===r.kind?"selected":""}>${l}</option>`).join("")}</select></label>
       <textarea oninput="reviewing[${i}].text=this.value">${esc(r.text)}</textarea>
       <label class="f">לסיים עד<input type="date" value="${r.dueDate}" onchange="reviewing[${i}].dueDate=this.value"></label>
       <label class="f">שיעור הבא<input type="date" value="${r.lessonDate}" onchange="reviewing[${i}].lessonDate=this.value"></label>
-      <div class="x">${r.dup?"נראה שכבר קיים ברשימה":""}<button class="icon" onclick="reviewing.splice(${i},1);render()">הסרה</button></div></div>`).join(""):`<p class="hint">לא נמצאו משימות.</p>`}
-    <div class="row"><button class="btn" onclick="saveReview()" ${!reviewing.length?"disabled":""}>שמירה לרשימה</button><button class="btn ghost" onclick="reviewing=null;render()">ביטול</button></div></div>`;
+      <div class="x">${r.dup?"נוסף בכל זאת":""}<button class="icon" onclick="reviewing.splice(${i},1);render()">הסרה</button></div></div>`).join(""):`<p class="hint">לא נמצאו משימות.</p>`}
+    <div class="row"><button class="btn" onclick="saveReview()" ${!reviewing.some(r=>!r.dup||r.force)?"disabled":""}>שמירה לרשימה</button><button class="btn ghost" onclick="reviewing=null;render()">ביטול</button></div></div>`;
   }
   return h+manualCard()+bringCard();
 }
@@ -344,7 +347,7 @@ function manualCard(){
     <label class="f">סוג<select id="mKind"><option value="homework">ש.ב</option><option value="classwork">בכיתה</option></select></label>
     <label class="f">לסיים עד (ריק = לפי המערכת)<input type="date" id="mDue"></label></div>
     <div class="row"><textarea id="mText" placeholder="למשל: עמ' 41–42"></textarea></div>
-    <div class="row"><button class="btn" onclick="manualAdd()">הוספה</button></div></div>`;
+    <div class="err" id="mWarn"></div><div class="row"><button class="btn" onclick="manualAdd()">הוספה</button></div></div>`;
 }
 function viewSettings(){
   return `<div class="card"><h3>מי משתמש בטלפון הזה?</h3><div class="who">${WHO.map(w=>`<button class="btn ${w===who?"":"ghost"}" onclick="setWho('${w}')">${w}</button>`).join("")}</div></div>
@@ -441,7 +444,7 @@ async function readInput(){
     reviewing=(out.items||[]).map(it=>{
       const subject=normSubject(it.subject),from=it.sourceDate||srcDate,d=computeDates(subject,from,it.lessonDate),text=(it.text||"").trim();
       const n=s=>(s||"").replace(/[^֐-׿a-z0-9]/gi,"");
-      const dup=tasks.some(t=>t.subject===subject&&t.lessonDate===d.lessonDate&&(n(t.text)===n(text)||(n(text).length>6&&(n(t.text).includes(n(text))||n(text).includes(n(t.text))))));
+      const dup=findDup(subject,text,d.lessonDate)||null;
       return{subject,text,kind:["bring","classwork"].includes(it.kind)?it.kind:"homework",...d,dup,sourceDate:from};
     });
   }catch(e){
@@ -452,16 +455,28 @@ async function readInput(){
   busy=false;render();
 }
 function revSet(i,k,v){reviewing[i][k]=v;if(k==="subject"){Object.assign(reviewing[i],computeDates(v,reviewing[i].sourceDate||today(),null));render()}}
+function findDup(subject,text,lessonDate){
+  const n=x=>(x||"").replace(/[^\u0590-\u05FFa-z0-9]/gi,"");
+  const nums=x=>((x||"").match(/\d+/g)||[]).join(",");
+  const near=(a,b)=>!a||!b||Math.abs(parse(a)-parse(b))<=8*864e5;
+  return tasks.find(t=>t.subject===subject&&t.kind!=="bring"&&near(t.lessonDate,lessonDate)&&(
+    n(t.text)===n(text)||(n(text).length>5&&(n(t.text).includes(n(text))||n(text).includes(n(t.text))))||(nums(text)&&nums(t.text)===nums(text))));
+}
 async function saveReview(){
-  const list=reviewing.filter(r=>r.text.trim());
-  try{await addTasks(list);reviewing=null;pendingImgs=[];pendingText="";toast(`נשמרו ${list.length} משימות`);go("open")}
+  const list=reviewing.filter(r=>r.text.trim()&&(!r.dup||r.force));
+  if(!list.length){toast("אין משימות חדשות לשמור");reviewing=null;render();return}
+  try{await addTasks(list);reviewing=null;pendingImgs=[];pendingText="";toast(`נשמרו ${list.length} משימות חדשות`);go("open")}
   catch(e){toast("השמירה נכשלה – בדקו אינטרנט")}
 }
+let manualForce=null;
 async function manualAdd(){
   const subject=$("#mSub").value,kind=$("#mKind").value,text=$("#mText").value.trim(),due=$("#mDue").value;
   if(!text){toast("כתבו מה צריך לעשות");return}
   const d=computeDates(subject,today(),null);
-  try{await addTasks([{subject,kind,text,dueDate:due||d.dueDate,lessonDate:d.lessonDate}]);$("#mText").value="";toast("נוסף")}catch(e){toast("לא נשמר")}
+  const dup=findDup(subject,text,d.lessonDate);
+  if(dup&&manualForce!==text){manualForce=text;$("#mWarn").innerHTML=`כבר ברשימה: ${esc(dup.subject)} – ${esc(dup.text)}${dup.done?" (סומן כבוצע)":""}. ללחוץ שוב על "הוספה" כדי להוסיף בכל זאת.`;return}
+  manualForce=null;
+  try{await addTasks([{subject,kind,text,dueDate:due||d.dueDate,lessonDate:d.lessonDate}]);$("#mText").value="";$("#mWarn").textContent="";toast("נוסף")}catch(e){toast("לא נשמר")}
 }
 async function importSeed(){
   const seed=[
