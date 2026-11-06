@@ -92,8 +92,8 @@ textarea{min-height:60px;resize:vertical}
 .rev.dupe .x{display:flex;justify-content:space-between;align-items:center;gap:8px}
 .rev .x{grid-column:1/-1;display:flex;justify-content:space-between;align-items:center;font-size:.85rem;color:var(--muted)}
 .err{color:var(--late);font-size:.9rem;margin-top:8px}
-.daytitle{display:flex;align-items:center;justify-content:space-between;gap:8px;text-align:center}
-.daytitle span{flex:1}
+.daytitle{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.arrows{display:flex;gap:6px;flex:none}
 .arrow{width:40px;height:40px;flex:none;border-radius:50%;border:2px solid var(--line);background:#fff;color:var(--accent);font-size:1.6rem;line-height:1;cursor:pointer;padding:0 0 4px}
 .arrow:disabled{opacity:.25}
 .bagday{font-size:1.25rem;font-weight:700;margin:0 6px 12px}
@@ -316,9 +316,8 @@ function viewBag(){
   const bringAll=tasks.filter(t=>t.kind==="bring"&&t.lessonDate===day);
   const general=bringAll.filter(t=>!subs.includes(t.subject));
   let h=`<div class="bagday daytitle">
-    <button class="arrow" aria-label="יום קודם" ${i===0?"disabled":""} onclick="bagDay='${days[Math.max(0,i-1)]}';render()">›</button>
     <span>מה להביא ביום ${DAYS[dow(day)]} ${dm(day)}</span>
-    <button class="arrow" aria-label="יום הבא" onclick="bagDay='${days[Math.min(days.length-1,i+1)]}';render()">‹</button></div>`;
+    <span class="arrows"><button class="arrow" aria-label="יום קודם" ${i===0?"disabled":""} onclick="bagDay='${days[Math.max(0,i-1)]}';render()">›</button><button class="arrow" aria-label="יום הבא" onclick="bagDay='${days[Math.min(days.length-1,i+1)]}';render()">‹</button></span></div>`;
   if(bringAll.length)h+=`<div class="bagsub bagspecial"><div class="bagname">דברים נוספים להביא</div>${bringAll.map(bringLine).join("")}</div>`;
   let groups=subs.map(x=>({name:x,subs:[x]}));
   if(subs.includes("מתמטיקה")&&subs.includes("גאומטריה")){
