@@ -1,0 +1,393 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#2f5d8a">
+<meta name="robots" content="noindex">
+<title>שיעורי בית – תום</title>
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon-192.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="שיעורי בית">
+<link href="https://fonts.googleapis.com/css2?family=Rubik:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#f6f4ef;--card:#fff;--ink:#1f2430;--muted:#6b7280;--line:#e6e2d8;--accent:#2f5d8a;--accent-soft:#e7eef6;--late:#c2412d;--late-soft:#fbe9e5;--today:#b7791f;--today-soft:#fdf3e1;--ok:#2f7d4f}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:Rubik,system-ui,sans-serif;font-size:16px;line-height:1.45}
+header{background:var(--accent);color:#fff;padding:18px 16px 0;padding-top:max(18px,env(safe-area-inset-top))}
+.top{display:flex;justify-content:space-between;align-items:center}
+header h1{margin:0;font-size:22px}
+header .sub{opacity:.85;font-size:14px;margin-top:2px}
+.gear{background:none;border:0;color:#fff;font-size:22px;cursor:pointer;opacity:.85}
+nav{display:flex;gap:4px;margin-top:14px;overflow-x:auto}
+nav button{flex:1;min-width:max-content;background:transparent;border:0;color:#fff;opacity:.75;font:inherit;font-size:15px;padding:10px 12px;border-bottom:3px solid transparent;cursor:pointer}
+nav button.on{opacity:1;border-bottom-color:#fff;font-weight:500}
+main{max-width:720px;margin:0 auto;padding:16px 12px 60px}
+.status{font-size:14px;color:var(--muted);padding:8px 4px}
+.group{margin-bottom:22px}
+.group h2{font-size:15px;margin:0 4px 8px;display:flex;align-items:center;gap:8px}
+.pill{font-size:12px;padding:2px 8px;border-radius:99px;font-weight:500;background:var(--accent-soft);color:var(--accent)}
+.late .pill{background:var(--late-soft);color:var(--late)}
+.today .pill{background:var(--today-soft);color:var(--today)}
+.task{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:12px;margin-bottom:8px;display:flex;gap:12px;align-items:flex-start}
+.late .task{border-right:4px solid var(--late)}
+.today .task{border-right:4px solid var(--today)}
+.task.done{opacity:.6}
+.task.done .txt{text-decoration:line-through}
+.chk{width:30px;height:30px;flex:none;border:2px solid var(--accent);border-radius:8px;background:#fff;cursor:pointer;display:grid;place-items:center;font-size:18px;color:#fff;padding:0}
+.task.done .chk{background:var(--ok);border-color:var(--ok)}
+.body{flex:1;min-width:0}
+.subj{font-weight:700;font-size:15px}
+.kind{font-size:12px;font-weight:400;margin-right:6px}
+.kind.bring{color:#8a4b9c}.kind.hw{color:var(--accent)}.kind.cls{color:#0f766e}
+.txt{margin-top:2px;white-space:pre-wrap;word-break:break-word}
+.meta{font-size:13px;color:var(--muted);margin-top:4px}
+.tools{display:flex;gap:2px}
+.icon{background:none;border:0;cursor:pointer;color:var(--muted);font-size:16px;padding:4px 6px;border-radius:6px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px;margin-bottom:16px}
+.card h3{margin:0 0 6px;font-size:17px}
+.hint{font-size:14px;color:var(--muted);margin:0 0 12px}
+.drop{border:2px dashed #c9c2b1;border-radius:12px;padding:22px;text-align:center;cursor:pointer;color:var(--muted)}
+.thumbs{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+.thumbs img{width:64px;height:64px;object-fit:cover;border-radius:8px;border:1px solid var(--line)}
+.btn{background:var(--accent);color:#fff;border:0;border-radius:10px;font:inherit;font-weight:500;padding:11px 18px;cursor:pointer}
+.btn:disabled{opacity:.5;cursor:default}
+.btn.ghost{background:var(--accent-soft);color:var(--accent)}
+.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-top:12px}
+label.f{display:flex;flex-direction:column;font-size:13px;color:var(--muted);gap:4px}
+input,select,textarea{font:inherit;font-size:16px;border:1px solid var(--line);border-radius:8px;padding:8px;background:#fff;color:var(--ink)}
+textarea{width:100%;min-height:54px;resize:vertical}
+.rev{border:1px solid var(--line);border-radius:10px;padding:10px;margin-top:10px;display:grid;gap:8px;grid-template-columns:1fr 1fr}
+.rev textarea{grid-column:1/-1}
+.rev .x{grid-column:1/-1;display:flex;justify-content:space-between;align-items:center;font-size:13px;color:var(--muted)}
+.err{color:var(--late);font-size:14px;margin-top:8px}
+.bagday{font-size:18px;font-weight:700;margin:0 4px 10px}
+.bag{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:12px;margin-bottom:8px}
+.bag ul{margin:6px 0 0;padding-inline-start:20px}
+.extra{color:#8a4b9c;font-weight:500}
+.empty{text-align:center;color:var(--muted);padding:30px 10px}
+.empty b{display:block;font-size:20px;color:var(--ok);margin-bottom:4px}
+.tt{width:100%;border-collapse:collapse;font-size:14px}
+.tt td,.tt th{border:1px solid var(--line);padding:6px;text-align:right;vertical-align:top}
+.tt th{background:var(--accent-soft)}
+.who{display:flex;gap:10px;flex-wrap:wrap}
+.who button{flex:1;min-width:90px;font-size:20px;padding:18px}
+.toast{position:fixed;bottom:16px;left:50%;transform:translateX(-50%);background:#1f2430;color:#fff;padding:10px 16px;border-radius:10px;font-size:14px;z-index:9}
+code{background:var(--bg);padding:2px 6px;border-radius:6px;font-size:13px;word-break:break-all}
+</style>
+</head>
+<body>
+<header>
+  <div class="top"><div><h1>שיעורי בית – תום</h1><div class="sub" id="todayLbl"></div></div><button class="gear" onclick="go('settings')" aria-label="הגדרות">⚙︎</button></div>
+  <nav id="nav"></nav>
+</header>
+<main id="main"><div class="status">טוען…</div></main>
+
+<script>
+/* ===== מערכת שעות (0=ראשון) ===== */
+const TT = {
+  0:["מדעים","כישורי חיים","שפה","תורה","חווה חקלאית"],
+  1:["שפה","מתמטיקה","שפה","בישול"],
+  2:["חנ\"ג","מדעים","מתמטיקה","שפה","אנגלית פרטי"],
+  3:["אנגלית","מולדת","שפה","תורה","מדעים","שבילי מורשת"],
+  4:["חנ\"ג","מתמטיקה","שפה","מפתח הלב"],
+  5:["אנגלית","מוזיקה"]
+};
+const SUBJECTS = ["מתמטיקה","שפה","מדעים","תורה","אנגלית","אנגלית פרטי","מולדת","שבילי מורשת","כישורי חיים","מפתח הלב","חווה חקלאית","בישול","חנ\"ג","מוזיקה","אחר"];
+const BAG = {
+  "מתמטיקה":["מחברת מתמטיקה","מחברת גאומטריה","חוברת השבחה מס' 1"],
+  "שפה":["מחברת שפה","חוברת עולמות","ספר קריאה (חובה!)","קלסר מנילה"],
+  "מדעים":["מחברת מדעים","ספר פלאטבע"],
+  "תורה":["מחברת תורה","חומש בראשית"],
+  "אנגלית":["Jet 1 Book","Alphabet Workbook","מחברת אנגלית"],
+  "מולדת":["מחברת מולדת","ספר מולדת"],
+  "שבילי מורשת":["מחברת מורשת"],
+  "כישורי חיים":["מחברת שורות (כישורי חיים + מפתח הלב)"],
+  "מפתח הלב":["מחברת שורות (כישורי חיים + מפתח הלב)"],
+  "חווה חקלאית":["נעליים סגורות","תיק קטן עם בקבוק מים"],
+  "בישול":["הדבר שצריך להביא לבישול (ראו למעלה)"],
+  "חנ\"ג":["בגדי ספורט ובקבוק מים"],
+  "מוזיקה":[]
+};
+const NOT_BAG = ["אנגלית פרטי"];
+const DAYS = ["ראשון","שני","שלישי","רביעי","חמישי","שישי","שבת"];
+const DSHORT = ["א׳","ב׳","ג׳","ד׳","ה׳","ו׳","ש׳"];
+const WHO = ["אמא","אבא","תום"];
+const GEMINI_MODELS = ["gemini-flash-latest","gemini-2.5-flash","gemini-2.5-flash-lite"];
+
+/* ===== תאריכים ===== */
+const pad=n=>String(n).padStart(2,"0");
+const iso=d=>`${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
+const parse=s=>{const[y,m,d]=s.split("-").map(Number);return new Date(y,m-1,d)};
+const addDays=(s,n)=>{const d=parse(s);d.setDate(d.getDate()+n);return iso(d)};
+const dow=s=>parse(s).getDay();
+const today=()=>iso(new Date());
+const fmt=s=>s?`יום ${DSHORT[dow(s)]} ${parse(s).getDate()}/${parse(s).getMonth()+1}`:"";
+function nextSchoolDay(s){let d=addDays(s,1);while(dow(d)===6)d=addDays(d,1);return d}
+function nextLesson(subject,from){for(let i=1;i<=21;i++){const d=addDays(from,i);if((TT[dow(d)]||[]).includes(subject))return d}return null}
+function computeDates(subject,from,explicit){const lesson=explicit||nextLesson(subject,from)||addDays(from,1);return{lessonDate:lesson,dueDate:addDays(lesson,-1)}}
+function normSubject(s){
+  s=(s||"").trim();
+  if(/פרטי/.test(s))return "אנגלית פרטי";
+  if(/גאומטר|חשבון|מתמט/.test(s))return "מתמטיקה";
+  if(/אנגל|english/i.test(s))return "אנגלית";
+  if(/חנ.?.?ג|ספורט|חינוך גופני/.test(s))return "חנ\"ג";
+  if(/חווה/.test(s))return "חווה חקלאית";
+  if(/מפתח הלב|פל.?.?א/.test(s))return "מפתח הלב";
+  if(/מורשת/.test(s))return "שבילי מורשת";
+  if(/לשון|שפה|קריאה|עברית/.test(s))return "שפה";
+  return SUBJECTS.find(x=>s.includes(x)||x.includes(s))||"אחר";
+}
+
+/* ===== הגדרות מקומיות ===== */
+const store={get(k){try{return localStorage.getItem(k)}catch(e){return null}},set(k,v){try{v==null?localStorage.removeItem(k):localStorage.setItem(k,v)}catch(e){}}};
+(function readHash(){
+  const h=new URLSearchParams(location.hash.slice(1));
+  if(h.get("u")&&h.get("k")){store.set("sbUrl",h.get("u"));store.set("sbKey",h.get("k"))}
+})();
+const cfg={url:store.get("sbUrl"),key:store.get("sbKey")};
+let who=store.get("who");
+let gkey=store.get("gkey");
+const isParent=()=>who&&who!=="תום";
+const canUpload=()=>isParent()&&!!gkey;
+function familyLink(){return location.origin+location.pathname+"#u="+encodeURIComponent(cfg.url)+"&k="+encodeURIComponent(cfg.key)}
+
+/* ===== Supabase REST ===== */
+async function sb(path,opt={}){
+  const r=await fetch(cfg.url.replace(/\/$/,"")+"/rest/v1/"+path,{...opt,headers:{apikey:cfg.key,Authorization:"Bearer "+cfg.key,"Content-Type":"application/json",Prefer:"return=representation",...(opt.headers||{})}});
+  if(!r.ok)throw new Error((await r.text())||r.status);
+  const t=await r.text();return t?JSON.parse(t):null;
+}
+const fromRow=r=>({id:r.id,subject:r.subject,text:r.text,kind:r.kind,dueDate:r.due_date,lessonDate:r.lesson_date,done:r.done,doneBy:r.done_by,doneAt:r.done_at,createdAt:r.created_at});
+const toRow=t=>({id:t.id,subject:t.subject,text:t.text,kind:t.kind,due_date:t.dueDate,lesson_date:t.lessonDate,done:!!t.done,done_by:t.doneBy||null,done_at:t.doneAt||null});
+
+/* ===== מצב ===== */
+let tasks=[],loaded=false,loadErr="",view="open";
+let pendingImgs=[],pendingText="",reviewing=null,busy=false,aiErr="",editId=null,confirmId=null;
+const $=s=>document.querySelector(s);
+const esc=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+function toast(m){const d=document.createElement("div");d.className="toast";d.textContent=m;document.body.appendChild(d);setTimeout(()=>d.remove(),2800)}
+$("#todayLbl").textContent=`היום: יום ${DAYS[new Date().getDay()]} ${new Date().getDate()}/${new Date().getMonth()+1}${who?" · "+who:""}`;
+
+async function load(){
+  if(!cfg.url||!cfg.key){loadErr="nolink";render();return}
+  try{const rows=await sb("tasks?select=*&order=due_date.asc");tasks=rows.map(fromRow);loaded=true;loadErr=""}
+  catch(e){loadErr="לא הצלחתי לטעון את הרשימה. בדקו חיבור לאינטרנט.";console.error(e)}
+  if(!editId&&!reviewing&&document.activeElement?.tagName!=="TEXTAREA")render();
+}
+setInterval(load,20000);
+document.addEventListener("visibilitychange",()=>{if(!document.hidden)load()});
+
+/* ===== פעולות ===== */
+async function toggle(id){
+  const t=tasks.find(x=>x.id===id);if(!t)return;
+  const done=!t.done;Object.assign(t,{done,doneBy:done?who:null,doneAt:done?new Date().toISOString():null});render();
+  try{await sb("tasks?id=eq."+encodeURIComponent(id),{method:"PATCH",body:JSON.stringify({done,done_by:t.doneBy,done_at:t.doneAt})})}
+  catch(e){t.done=!done;render();toast("לא נשמר – בדקו אינטרנט")}
+}
+async function removeTask(id){
+  if(confirmId!==id){confirmId=id;render();setTimeout(()=>{if(confirmId===id){confirmId=null;render()}},4000);return}
+  confirmId=null;tasks=tasks.filter(t=>t.id!==id);render();
+  try{await sb("tasks?id=eq."+encodeURIComponent(id),{method:"DELETE"})}catch(e){toast("המחיקה נכשלה");load()}
+}
+async function saveEdit(id){
+  const box=document.getElementById("ed-"+id),t=tasks.find(x=>x.id===id);
+  Object.assign(t,{subject:box.querySelector("[name=subject]").value,kind:box.querySelector("[name=kind]").value,text:box.querySelector("[name=text]").value.trim(),dueDate:box.querySelector("[name=due]").value});
+  editId=null;render();
+  try{await sb("tasks?id=eq."+encodeURIComponent(id),{method:"PATCH",body:JSON.stringify({subject:t.subject,kind:t.kind,text:t.text,due_date:t.dueDate})})}catch(e){toast("לא נשמר");load()}
+}
+const newId=()=>Date.now().toString(36)+Math.random().toString(36).slice(2,7);
+async function addTasks(list){
+  const rows=list.map(t=>toRow({...t,id:newId(),done:false}));
+  const res=await sb("tasks",{method:"POST",body:JSON.stringify(rows)});
+  tasks.push(...res.map(fromRow));
+}
+
+/* ===== תצוגה ===== */
+const KIND={homework:`<span class="kind hw">📝 ש.ב</span>`,classwork:`<span class="kind cls">🏫 בכיתה – לוודא שהושלם</span>`,bring:`<span class="kind bring">🎒 להביא</span>`};
+function taskHtml(t){
+  if(editId===t.id)return `<div class="task" id="ed-${t.id}"><div class="body" style="display:grid;gap:8px">
+    <select name="subject">${SUBJECTS.map(s=>`<option ${s===t.subject?"selected":""}>${s}</option>`).join("")}</select>
+    <select name="kind">${[["homework","ש.ב"],["classwork","בכיתה"],["bring","להביא"]].map(([v,l])=>`<option value="${v}" ${v===t.kind?"selected":""}>${l}</option>`).join("")}</select>
+    <textarea name="text">${esc(t.text)}</textarea>
+    <label class="f">לסיים עד<input type="date" name="due" value="${t.dueDate||""}"></label>
+    <div class="row" style="margin:0"><button class="btn" onclick="saveEdit('${t.id}')">שמירה</button><button class="btn ghost" onclick="editId=null;render()">ביטול</button></div></div></div>`;
+  return `<div class="task ${t.done?"done":""}">
+    <button class="chk" aria-label="סימון" onclick="toggle('${t.id}')">${t.done?"✓":""}</button>
+    <div class="body"><div class="subj">${esc(t.subject)}${KIND[t.kind]||""}</div>
+      <div class="txt">${esc(t.text)}</div>
+      <div class="meta">${t.kind==="bring"?"להכין עד":"לסיים עד"} ${fmt(t.dueDate)}${t.lessonDate?` · לשיעור ב${fmt(t.lessonDate)}`:""}${t.done&&t.doneBy?` · סומן ע״י ${esc(t.doneBy)}`:""}</div></div>
+    ${isParent()?`<div class="tools"><button class="icon" onclick="editId='${t.id}';render()">✎</button><button class="icon" onclick="removeTask('${t.id}')">${confirmId===t.id?"<span style='color:var(--late);font-size:13px'>למחוק?</span>":"🗑"}</button></div>`:""}
+  </div>`;
+}
+function viewOpen(){
+  const open=tasks.filter(t=>!t.done).sort((a,b)=>(a.dueDate||"").localeCompare(b.dueDate||""));
+  if(!open.length)return `<div class="empty"><b>הכל בוצע 🎉</b>אין משימות פתוחות כרגע.</div>`;
+  const td=today(),tm=nextSchoolDay(td);
+  return [{c:"late",t:"באיחור",f:t=>t.dueDate<td},{c:"today",t:"להיום",f:t=>t.dueDate===td},{c:"soon",t:`עד ${fmt(tm)}`,f:t=>t.dueDate>td&&t.dueDate<=tm},{c:"",t:"בהמשך",f:t=>t.dueDate>tm}]
+    .map(g=>{const l=open.filter(g.f);return l.length?`<section class="group ${g.c}"><h2>${g.t}<span class="pill">${l.length}</span></h2>${l.map(taskHtml).join("")}</section>`:""}).join("");
+}
+function viewDone(){
+  const done=tasks.filter(t=>t.done).sort((a,b)=>(b.doneAt||"").localeCompare(a.doneAt||""));
+  return done.length?`<section class="group">${done.slice(0,60).map(taskHtml).join("")}</section>`:`<div class="empty">עוד לא סומנו משימות שבוצעו.</div>`;
+}
+function viewBag(){
+  const day=nextSchoolDay(today());
+  const subs=[...new Set(TT[dow(day)]||[])].filter(x=>!NOT_BAG.includes(x));
+  const bring=tasks.filter(t=>t.kind==="bring"&&t.lessonDate===day);
+  const ready=tasks.filter(t=>t.kind!=="bring"&&t.lessonDate===day&&!NOT_BAG.includes(t.subject));
+  let h=`<div class="bagday">🎒 התיק ליום ${DAYS[dow(day)]} ${parse(day).getDate()}/${parse(day).getMonth()+1}</div>`;
+  if(bring.length)h+=`<div class="bag"><b class="extra">מיוחד למחר</b><ul>${bring.map(t=>`<li class="extra">${esc(t.subject)}: ${esc(t.text)}${t.done?" ✓":""}</li>`).join("")}</ul></div>`;
+  if(ready.length)h+=`<div class="bag"><b>מה צריך להיות מוכן למחר</b><ul>${ready.map(t=>`<li>${esc(t.subject)}: ${esc(t.text)} ${t.done?"✓":"<span style='color:var(--late)'>(עוד לא סומן)</span>"}</li>`).join("")}</ul></div>`;
+  h+=subs.map(s=>{const it=BAG[s]||[];return `<div class="bag"><b>${s}</b>${it.length?`<ul>${it.map(i=>`<li>${esc(i)}</li>`).join("")}</ul>`:""}</div>`}).join("");
+  h+=`<details class="card" style="margin-top:18px"><summary style="cursor:pointer;font-weight:500">מערכת השעות</summary><table class="tt" style="margin-top:10px"><tr>${[0,1,2,3,4,5].map(d=>`<th>${DAYS[d]}</th>`).join("")}</tr><tr>${[0,1,2,3,4,5].map(i=>`<td>${TT[i].join("<br>")}</td>`).join("")}</tr></table></details>`;
+  return h;
+}
+function viewAdd(){
+  if(!gkey)return `<div class="card"><h3>צריך מפתח Gemini</h3><p class="hint">כדי לקרוא תמונות צריך להכניס מפתח בהגדרות (⚙︎).</p><button class="btn" onclick="go('settings')">להגדרות</button></div>`+manualCard();
+  let h=`<div class="card"><h3>📸 תמונה או הודעה</h3>
+    <p class="hint">צילום לוח, צילומי מסך מהאפליקציה, או הדבקת טקסט של הודעה. לפני השמירה אפשר לתקן.</p>
+    <div class="drop" onclick="$('#file').click()">לחצו לבחירת תמונות<input type="file" id="file" accept="image/*" multiple hidden onchange="addFiles(this.files)"></div>
+    <div class="thumbs">${pendingImgs.map(p=>`<img src="${p.url}" alt="">`).join("")}</div>
+    <div class="row"><textarea id="srcText" placeholder="או הדביקו כאן טקסט של הודעה…" oninput="pendingText=this.value;$('#readBtn').disabled=!(pendingImgs.length||pendingText.trim())">${esc(pendingText)}</textarea></div>
+    <div class="row"><label class="f">מאיזה יום הלוח / ההודעה?<input type="date" id="srcDate" value="${today()}"></label></div>
+    <div class="row"><button class="btn" id="readBtn" onclick="readInput()" ${(!(pendingImgs.length||pendingText.trim())||busy)?"disabled":""}>${busy?"קורא…":"קריאת המשימות"}</button>
+    ${(pendingImgs.length||pendingText)&&!busy?`<button class="btn ghost" onclick="clearInput()">ניקוי</button>`:""}</div>
+    ${aiErr?`<div class="err">${esc(aiErr)}</div>`:""}</div>`;
+  if(reviewing){
+    h+=`<div class="card"><h3>בדיקה לפני שמירה (${reviewing.length})</h3>
+    ${reviewing.length?reviewing.map((r,i)=>`<div class="rev">
+      <label class="f">מקצוע<select onchange="revSet(${i},'subject',this.value)">${SUBJECTS.map(s=>`<option ${s===r.subject?"selected":""}>${s}</option>`).join("")}</select></label>
+      <label class="f">סוג<select onchange="reviewing[${i}].kind=this.value">${[["homework","ש.ב"],["classwork","בכיתה"],["bring","להביא"]].map(([v,l])=>`<option value="${v}" ${v===r.kind?"selected":""}>${l}</option>`).join("")}</select></label>
+      <textarea oninput="reviewing[${i}].text=this.value">${esc(r.text)}</textarea>
+      <label class="f">לסיים עד<input type="date" value="${r.dueDate}" onchange="reviewing[${i}].dueDate=this.value"></label>
+      <label class="f">שיעור הבא<input type="date" value="${r.lessonDate}" onchange="reviewing[${i}].lessonDate=this.value"></label>
+      <div class="x">${r.dup?"⚠️ נראה שכבר קיים ברשימה":""}<button class="icon" onclick="reviewing.splice(${i},1);render()">🗑 הסרה</button></div></div>`).join(""):`<p class="hint">לא נמצאו משימות.</p>`}
+    <div class="row"><button class="btn" onclick="saveReview()" ${!reviewing.length?"disabled":""}>שמירה לרשימה</button><button class="btn ghost" onclick="reviewing=null;render()">ביטול</button></div></div>`;
+  }
+  return h+manualCard();
+}
+function manualCard(){
+  return `<div class="card"><h3>✍️ הוספה ידנית</h3><div class="row" style="margin-top:0">
+    <label class="f">מקצוע<select id="mSub">${SUBJECTS.map(s=>`<option>${s}</option>`).join("")}</select></label>
+    <label class="f">סוג<select id="mKind"><option value="homework">ש.ב</option><option value="classwork">בכיתה</option><option value="bring">להביא</option></select></label>
+    <label class="f">לסיים עד (ריק = לפי המערכת)<input type="date" id="mDue"></label></div>
+    <div class="row"><textarea id="mText" placeholder="למשל: עמ' 41–42"></textarea></div>
+    <div class="row"><button class="btn" onclick="manualAdd()">הוספה</button><button class="btn ghost" onclick="$('#mSub').value='בישול';$('#mKind').value='bring';$('#mText').focus()">🍳 מה להביא לבישול</button></div></div>`;
+}
+function viewSettings(){
+  return `<div class="card"><h3>מי משתמש בטלפון הזה?</h3><div class="who">${WHO.map(w=>`<button class="btn ${w===who?"":"ghost"}" onclick="setWho('${w}')">${w}</button>`).join("")}</div></div>
+  ${isParent()?`<div class="card"><h3>מפתח Gemini (לקריאת תמונות)</h3>
+    <p class="hint">נשמר רק בטלפון הזה. מקבלים בחינם ב-aistudio.google.com ← Get API key.</p>
+    <div class="row"><input id="gk" type="password" style="flex:1" placeholder="${gkey?"•••• שמור":"הדביקו כאן את המפתח"}"><button class="btn" onclick="saveKey()">שמירה</button>${gkey?`<button class="btn ghost" onclick="gkey=null;store.set('gkey',null);render()">מחיקה</button>`:""}</div></div>
+    <div class="card"><h3>קישור משפחתי</h3><p class="hint">שלחו את הקישור הזה לאבא ולתום (למשל בווטסאפ). מי שיש לו אותו יכול לראות ולסמן – לא לפרסם.</p>
+    <div class="row"><button class="btn" onclick="copyLink()">העתקת הקישור</button></div></div>
+    ${loaded&&!tasks.length?`<div class="card"><h3>משימות התחלתיות</h3><p class="hint">להעביר את המשימות שהיו בדף הקודם?</p><button class="btn" onclick="importSeed()">העברה</button></div>`:""}`:""}`;
+}
+function viewNoLink(){
+  return `<div class="card"><h3>חסר קישור משפחתי</h3><p class="hint">פתחו את האפליקציה מהקישור המלא שקיבלתם (בווטסאפ), פעם אחת. אחרי זה היא תיזכר.</p></div>`;
+}
+function navHtml(){
+  const tabs=[["open","מה פתוח"],["bag","תיק למחר"],...(isParent()?[["add","הוספה"]]:[]),["done","בוצע"]];
+  return tabs.map(([v,l])=>`<button class="${v===view?"on":""}" onclick="go('${v}')">${l}</button>`).join("");
+}
+function go(v){view=v;render();window.scrollTo(0,0)}
+function render(){
+  $("#nav").innerHTML=navHtml();
+  const m=$("#main");
+  if(loadErr==="nolink"){m.innerHTML=viewNoLink();return}
+  if(!who&&view!=="settings"){view="settings"}
+  if(view==="settings"){m.innerHTML=viewSettings();return}
+  if(loadErr){m.innerHTML=`<div class="card"><div class="err">${esc(loadErr)}</div><div class="row"><button class="btn" onclick="load()">נסו שוב</button></div></div>`;return}
+  if(!loaded&&view!=="add"){m.innerHTML=`<div class="status">טוען…</div>`;return}
+  m.innerHTML=view==="open"?viewOpen():view==="done"?viewDone():view==="bag"?viewBag():viewAdd();
+}
+function setWho(w){who=w;store.set("who",w);$("#todayLbl").textContent=`היום: יום ${DAYS[new Date().getDay()]} ${new Date().getDate()}/${new Date().getMonth()+1} · ${w}`;if(w==="תום")view="open";render()}
+function saveKey(){const v=$("#gk").value.trim();if(!v)return;gkey=v;store.set("gkey",v);toast("נשמר");render()}
+async function copyLink(){try{await navigator.clipboard.writeText(familyLink());toast("הקישור הועתק")}catch(e){prompt("העתיקו:",familyLink())}}
+
+/* ===== קריאת תמונות עם Gemini ===== */
+async function addFiles(list){for(const f of [...list].filter(f=>f.type.startsWith("image/"))){const blob=await shrink(f);pendingImgs.push({blob,url:URL.createObjectURL(blob)})}render()}
+function clearInput(){pendingImgs=[];pendingText="";reviewing=null;aiErr="";render()}
+function shrink(file){return new Promise(res=>{const img=new Image();img.onload=()=>{const k=Math.min(1,1800/Math.max(img.width,img.height));const c=document.createElement("canvas");c.width=Math.round(img.width*k);c.height=Math.round(img.height*k);c.getContext("2d").drawImage(img,0,0,c.width,c.height);c.toBlob(b=>res(b||file),"image/jpeg",.85)};img.onerror=()=>res(file);img.src=URL.createObjectURL(file)})}
+const b64=blob=>new Promise(r=>{const fr=new FileReader();fr.onload=()=>r(fr.result.split(",")[1]);fr.readAsDataURL(blob)});
+function buildPrompt(srcDate){
+  const tt=[0,1,2,3,4,5].map(d=>`${DAYS[d]}: ${TT[d].join(", ")}`).join("\n");
+  return `אתה עוזר להורה לעקוב אחרי שיעורי הבית של ילד בכיתה ד'.
+החומר: תמונות (צילום לוח בכיתה / צילומי מסך מאפליקציית בית הספר) ו/או טקסט של הודעה. הודעה מהמורה של השיעור הפרטי באנגלית – המקצוע "אנגלית פרטי"; מעבודה שנעשתה בשיעור הפרטי עם המורה לא לרשום, רק שיעורי בית.
+היום: ${today()}. התאריך שההורה ציין: ${srcDate} (אם בצילום המסך מופיע תאריך מפורש של השיעור, השתמש בו).
+מערכת השעות:
+${tt}
+
+חלץ שלושה סוגי משימות:
+- homework: שיעורי בית, "לסיים בבית", דפי עבודה להשלים, "מי שלא סיים…".
+- classwork: עבודה מוגדרת שנעשתה בכיתה (עמודים, דף עבודה, תרגילים), למשל "בכיתה – עמ' 19". אם אותה עבודה כתובה גם "לסיים בבית" – רק homework.
+- bring: פריטים מיוחדים להביא (לא הציוד הקבוע).
+אל תכלול: נושאי שיעור כלליים בלי עבודה מוגדרת, ציוד קבוע שחוזר כל שבוע ("נא להביא מחברת…", "ספר קריאה הוא ציוד חובה", נעליים סגורות לחווה).
+subject: אחד מ: ${SUBJECTS.join(", ")} (גאומטריה = מתמטיקה; לשון = שפה).
+text: קצר וברור בעברית, למשל "עמ' 41–42 – לסיים בבית".
+lessonDate: תאריך השיעור שבו מגישים, רק אם נכתב במפורש, אחרת null. sourceDate: תאריך השיעור שבו ניתנה המשימה אם מופיע, אחרת null.
+${pendingText.trim()?`טקסט ההודעה:\n"""\n${pendingText.trim()}\n"""\n`:""}
+החזר JSON בלבד: {"items":[{"subject":"","text":"","kind":"homework|classwork|bring","sourceDate":null,"lessonDate":null}]}`;
+}
+async function callGemini(parts){
+  let lastErr;
+  for(const model of GEMINI_MODELS){
+    const r=await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${encodeURIComponent(gkey)}`,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({contents:[{parts}],generationConfig:{responseMimeType:"application/json",temperature:0.1}})});
+    if(r.ok){const j=await r.json();const txt=(j.candidates?.[0]?.content?.parts||[]).map(p=>p.text||"").join("");return JSON.parse((txt.match(/\{[\s\S]*\}/)||["{}"])[0])}
+    lastErr={status:r.status,body:await r.text()};
+    if(r.status!==404)break;
+  }
+  throw lastErr;
+}
+async function readInput(){
+  const srcDate=$("#srcDate").value||today();
+  busy=true;aiErr="";render();
+  try{
+    const parts=[{text:buildPrompt(srcDate)}];
+    for(const p of pendingImgs)parts.push({inline_data:{mime_type:"image/jpeg",data:await b64(p.blob)}});
+    const out=await callGemini(parts);
+    reviewing=(out.items||[]).map(it=>{
+      const subject=normSubject(it.subject),from=it.sourceDate||srcDate,d=computeDates(subject,from,it.lessonDate),text=(it.text||"").trim();
+      const n=s=>(s||"").replace(/[^֐-׿a-z0-9]/gi,"");
+      const dup=tasks.some(t=>t.subject===subject&&t.lessonDate===d.lessonDate&&(n(t.text)===n(text)||(n(text).length>6&&(n(t.text).includes(n(text))||n(text).includes(n(t.text))))));
+      return{subject,text,kind:["bring","classwork"].includes(it.kind)?it.kind:"homework",...d,dup,sourceDate:from};
+    });
+  }catch(e){
+    console.error(e);
+    aiErr=e&&(e.status===400||e.status===403)?"המפתח של Gemini לא תקין – בדקו בהגדרות.":e&&e.status===429?"הגעתם למגבלה של המסלול החינמי. נסו שוב בעוד כמה דקות.":"לא הצלחתי לקרוא. נסו שוב או הוסיפו ידנית.";
+  }
+  busy=false;render();
+}
+function revSet(i,k,v){reviewing[i][k]=v;if(k==="subject"){Object.assign(reviewing[i],computeDates(v,reviewing[i].sourceDate||today(),null));render()}}
+async function saveReview(){
+  const list=reviewing.filter(r=>r.text.trim());
+  try{await addTasks(list);reviewing=null;pendingImgs=[];pendingText="";toast(`נשמרו ${list.length} משימות`);go("open")}
+  catch(e){toast("השמירה נכשלה – בדקו אינטרנט")}
+}
+async function manualAdd(){
+  const subject=$("#mSub").value,kind=$("#mKind").value,text=$("#mText").value.trim(),due=$("#mDue").value;
+  if(!text){toast("כתבו מה צריך לעשות");return}
+  const d=computeDates(subject,today(),null);
+  try{await addTasks([{subject,kind,text,dueDate:due||d.dueDate,lessonDate:d.lessonDate}]);$("#mText").value="";toast("נוסף")}catch(e){toast("לא נשמר")}
+}
+async function importSeed(){
+  const seed=[
+    ["מתמטיקה","עמ' 41–42 – לסיים בבית","homework","2026-11-04","2026-11-05"],
+    ["מתמטיקה","דף עבודה לבדיקה – מבנה עשרוני","homework","2026-11-04","2026-11-05"],
+    ["שפה","עמודים 36–38 (קיבלו בכיתה) – לסיים בבית","homework","2026-11-03","2026-11-04"],
+    ["מדעים","עמ' 19","classwork","2026-11-03","2026-11-04"],
+    ["שפה","דפי עבודה בנושא חיפוש במילון","homework","2026-11-07","2026-11-08"],
+    ["שפה","מי שלא סיים: חוברת עמ' 48–49","homework","2026-11-07","2026-11-08"],
+    ["בישול","לבדוק מה צריך להביא לבישול ביום שני","bring","2026-11-08","2026-11-09"],
+    ["אנגלית פרטי","עמוד 32","homework","2026-11-09","2026-11-10"]
+  ].map(([subject,text,kind,dueDate,lessonDate])=>({subject,text,kind,dueDate,lessonDate}));
+  try{await addTasks(seed);toast("הועברו "+seed.length+" משימות");go("open")}catch(e){toast("ההעברה נכשלה")}
+}
+
+render();load();
+</script>
+</body>
+</html>
