@@ -189,7 +189,7 @@ async function load(){
   if(!cfg.url||!cfg.key){loadErr="nolink";render();return}
   try{const rows=await sb("tasks?select=*&order=due_date.asc");tasks=rows.map(fromRow);loaded=true;loadErr=""}
   catch(e){loadErr="לא הצלחתי לטעון את הרשימה. בדקו חיבור לאינטרנט.";console.error(e)}
-  if(!editId&&!reviewing&&document.activeElement?.tagName!=="TEXTAREA")render();
+  if(!editId&&!editBring&&!reviewing&&!["TEXTAREA","INPUT","SELECT"].includes(document.activeElement?.tagName))render();
 }
 setInterval(load,20000);
 document.addEventListener("visibilitychange",()=>{if(!document.hidden)load()});
@@ -247,39 +247,72 @@ function taskHtml(t){
 const dm=d=>`${parse(d).getDate()}/${parse(d).getMonth()+1}`;
 function viewOpen(){
   const td=today(),tm=addDays(td,1);
-  const all=tasks.filter(t=>!t.done).sort((a,b)=>(a.dueDate||"").localeCompare(b.dueDate||""));
-  const later=all.filter(t=>t.kind==="bring"&&t.dueDate>td);
-  const open=all.filter(t=>!later.includes(t));
-  const laterHtml=isParent()&&later.length?`<details class="card"><summary style="cursor:pointer;font-weight:700">להביא בהמשך (${later.length}) – יופיע לתום ביום שלפני</summary>${later.map(t=>`<div style="margin-top:8px">${esc(t.subject)}: ${esc(t.text)} <span style="color:var(--muted)">– יופיע ביום ${DAYS[dow(t.dueDate)]} ${dm(t.dueDate)}</span></div>`).join("")}</details>`:"";
-  if(!open.length)return `<div class="empty"><b>כל הכבוד!</b>אין שיעורים פתוחים</div>`+laterHtml;
+  const open=tasks.filter(t=>!t.done&&t.kind!=="bring").sort((a,b)=>(a.dueDate||"").localeCompare(b.dueDate||""));
+  if(!open.length)return `<div class="empty"><b>כל הכבוד!</b>אין שיעורים פתוחים</div>`;
   const banner=`<div class="banner">נשארו ${open.length} ${open.length===1?"משימה":"משימות"}</div>`;
   const groups=[{c:"late",t:"עבר הזמן – לסיים עכשיו",f:t=>t.dueDate<td},{c:"today",t:`לסיים היום (${DAYS[dow(td)]} ${dm(td)})`,f:t=>t.dueDate===td},{c:"",t:`לסיים עד מחר (${DAYS[dow(tm)]} ${dm(tm)})`,f:t=>t.dueDate===tm}];
   [...new Set(open.filter(t=>t.dueDate>tm).map(t=>t.dueDate))].forEach(d=>groups.push({c:"",t:`לסיים עד יום ${DAYS[dow(d)]} ${dm(d)}`,f:t=>t.dueDate===d}));
-  return banner+groups.map(g=>{const l=open.filter(g.f);return l.length?`<section class="group ${g.c}"><h2>${g.t}</h2>${l.map(taskHtml).join("")}</section>`:""}).join("")+laterHtml;
+  return banner+groups.map(g=>{const l=open.filter(g.f);return l.length?`<section class="group ${g.c}"><h2>${g.t}</h2>${l.map(taskHtml).join("")}</section>`:""}).join("");
 }
 function viewDone(){
-  const done=tasks.filter(t=>t.done).sort((a,b)=>(b.doneAt||"").localeCompare(a.doneAt||""));
+  const done=tasks.filter(t=>t.done&&t.kind!=="bring").sort((a,b)=>(b.doneAt||"").localeCompare(a.doneAt||""));
   return done.length?`<section class="group">${done.slice(0,60).map(taskHtml).join("")}</section>`:`<div class="empty">עוד לא סומן כלום</div>`;
 }
+let bagDay=null,editBring=null;
+function schoolDays(n){const out=[];let d=today();while(out.length<n){d=nextSchoolDay(d);out.push(d)}return out}
+function bringLine(t){
+  if(isParent()&&editBring===t.id)return `<div class="card" style="margin:8px 0 0;padding:12px;box-shadow:none;border:2px solid var(--line)">
+    <input id="ebText" value="${esc(t.text)}">
+    <div class="row"><label class="f">ליום<select id="ebDay">${schoolDays(12).map(d=>`<option value="${d}" ${d===t.lessonDate?"selected":""}>${DAYS[dow(d)]} ${dm(d)}</option>`).join("")}</select></label>
+    <label class="f">מקצוע<select id="ebSub">${["כללי",...SUBJECTS.filter(x=>x!=="אחר")].map(x=>`<option ${x===t.subject?"selected":""}>${x}</option>`).join("")}</select></label></div>
+    <div class="row"><button class="btn" onclick="saveBring('${t.id}')">שמירה</button><button class="btn ghost" onclick="editBring=null;render()">ביטול</button><button class="icon" style="margin-inline-start:auto;color:var(--late)" onclick="removeTask('${t.id}')">${confirmId===t.id?"בטוח?":"הסרה"}</button></div></div>`;
+  return `<div class="bagextra">${esc(t.text)}${isParent()?` <button class="icon" style="color:#6b2a92" onclick="editBring='${t.id}';render()">עריכה</button>`:""}</div>`;
+}
 function viewBag(){
-  const day=nextSchoolDay(today());
+  const days=schoolDays(12);
+  const day=bagDay&&days.includes(bagDay)?bagDay:days[0];
+  const i=days.indexOf(day);
   const subs=[...new Set(TT[dow(day)]||[])].filter(x=>!NOT_BAG.includes(x));
-  let h=`<div class="bagday">מה להביא ביום ${DAYS[dow(day)]}</div>`;
+  const bringAll=tasks.filter(t=>t.kind==="bring"&&t.lessonDate===day);
+  const general=bringAll.filter(t=>!subs.includes(t.subject));
+  let h=`<div class="bagday">מה להביא ביום ${DAYS[dow(day)]} ${dm(day)}</div>
+    <div class="row" style="margin:-4px 0 12px;justify-content:space-between">
+    <button class="btn ghost" style="min-height:40px;padding:8px 14px;${i===0?"visibility:hidden":""}" onclick="bagDay='${days[Math.max(0,i-1)]}';render()">→ יום קודם</button>
+    <button class="btn ghost" style="min-height:40px;padding:8px 14px" onclick="bagDay='${days[Math.min(days.length-1,i+1)]}';render()">יום הבא ←</button></div>`;
+  if(general.length)h+=`<div class="bagsub"><div class="bagname">גם להביא</div>${general.map(bringLine).join("")}</div>`;
   h+=subs.map(s=>{
     const items=BAG[s]||[];
-    const bring=tasks.filter(t=>t.kind==="bring"&&t.lessonDate===day&&t.subject===s);
+    const bring=bringAll.filter(t=>t.subject===s);
     const todo=tasks.filter(t=>t.kind!=="bring"&&t.lessonDate===day&&t.subject===s&&!t.done);
     if(!items.length&&!bring.length&&!todo.length)return "";
     return `<div class="bagsub"><div class="bagname">${s}</div>
       ${items.length?`<div class="bagitems">${items.map(esc).join(" · ")}</div>`:""}
-      ${bring.map(t=>`<div class="bagextra">להביא גם: ${esc(t.text)}</div>`).join("")}
+      ${bring.map(bringLine).join("")}
       ${todo.map(t=>`<div class="bagwarn">לגמור: ${esc(t.text)}</div>`).join("")}</div>`;
   }).join("");
-  if(isParent())h+=`<details class="card" style="margin-top:18px"><summary style="cursor:pointer;font-weight:700">מערכת השעות</summary><table class="tt" style="margin-top:10px"><tr>${[0,1,2,3,4,5].map(d=>`<th>${DAYS[d]}</th>`).join("")}</tr><tr>${[0,1,2,3,4,5].map(i=>`<td>${TT[i].join("<br>")}</td>`).join("")}</tr></table></details>`;
+  if(isParent()){
+    h+=`<div class="card" style="margin-top:18px"><h3>להוסיף משהו להביא</h3><p class="hint">למשל חולצה לבנה, מצרכים לבישול. תום יראה את זה ב"מה להביא" של אותו יום.</p>
+      <input id="nbText" placeholder="מה להביא?">
+      <div class="row"><label class="f">ליום<select id="nbDay">${days.map(d=>`<option value="${d}" ${d===day?"selected":""}>${DAYS[dow(d)]} ${dm(d)}</option>`).join("")}</select></label>
+      <label class="f">מקצוע<select id="nbSub">${["כללי",...SUBJECTS.filter(x=>x!=="אחר")].map(x=>`<option>${x}</option>`).join("")}</select></label></div>
+      <div class="row"><button class="btn" onclick="addBring()">שמירה</button></div></div>`;
+    h+=`<details class="card"><summary style="cursor:pointer;font-weight:700">מערכת השעות</summary><table class="tt" style="margin-top:10px"><tr>${[0,1,2,3,4,5].map(d=>`<th>${DAYS[d]}</th>`).join("")}</tr><tr>${[0,1,2,3,4,5].map(i=>`<td>${TT[i].join("<br>")}</td>`).join("")}</tr></table></details>`;
+  }
   return h;
 }
+async function addBring(){
+  const text=$("#nbText").value.trim(),lessonDate=$("#nbDay").value,subject=$("#nbSub").value;
+  if(!text){toast("כתבו מה להביא");return}
+  try{await addTasks([{subject,kind:"bring",text,lessonDate,dueDate:addDays(lessonDate,-1)}]);bagDay=lessonDate;toast("נשמר");render()}catch(e){toast("לא נשמר")}
+}
+async function saveBring(id){
+  const t=tasks.find(x=>x.id===id);
+  Object.assign(t,{text:$("#ebText").value.trim(),lessonDate:$("#ebDay").value,subject:$("#ebSub").value});t.dueDate=addDays(t.lessonDate,-1);
+  editBring=null;render();
+  try{await sb("tasks?id=eq."+encodeURIComponent(id),{method:"PATCH",body:JSON.stringify({text:t.text,subject:t.subject,lesson_date:t.lessonDate,due_date:t.dueDate})})}catch(e){toast("לא נשמר");load()}
+}
 function viewAdd(){
-  if(!gkey)return cookingCard()+`<div class="card"><h3>צריך מפתח Gemini</h3><p class="hint">כדי לקרוא תמונות צריך להכניס מפתח בהגדרות (⚙︎).</p><button class="btn" onclick="go('settings')">להגדרות</button></div>`+manualCard();
+  if(!gkey)return `<div class="card"><h3>צריך מפתח Gemini</h3><p class="hint">כדי לקרוא תמונות צריך להכניס מפתח בהגדרות (⚙︎).</p><button class="btn" onclick="go('settings')">להגדרות</button></div>`+manualCard();
   let h=`<div class="card"><h3>תמונה או הודעה</h3>
     <p class="hint">צילום לוח, צילומי מסך מהאפליקציה, או הדבקת טקסט של הודעה. לפני השמירה אפשר לתקן.</p>
     <div class="drop" onclick="$('#file').click()">לחצו לבחירת תמונות<input type="file" id="file" accept="image/*" multiple hidden onchange="addFiles(this.files)"></div>
@@ -300,22 +333,12 @@ function viewAdd(){
       <div class="x">${r.dup?"נראה שכבר קיים ברשימה":""}<button class="icon" onclick="reviewing.splice(${i},1);render()">הסרה</button></div></div>`).join(""):`<p class="hint">לא נמצאו משימות.</p>`}
     <div class="row"><button class="btn" onclick="saveReview()" ${!reviewing.length?"disabled":""}>שמירה לרשימה</button><button class="btn ghost" onclick="reviewing=null;render()">ביטול</button></div></div>`;
   }
-  return cookingCard()+h+manualCard();
-}
-function cookingCard(){
-  const d=nextLesson("בישול",today());
-  return `<div class="card"><h3>מה להביא לבישול</h3><p class="hint">לשיעור הבישול ביום ${DAYS[dow(d)]} ${dm(d)}. תום יראה את זה יום לפני.</p>
-    <div class="row" style="margin-top:0"><input id="cookText" placeholder="למשל: 2 ביצים וקופסה" style="flex:1"><button class="btn" onclick="cookingAdd()">שמירה</button></div></div>`;
-}
-async function cookingAdd(){
-  const text=$("#cookText").value.trim();if(!text){toast("כתבו מה להביא");return}
-  const d=computeDates("בישול",today(),null);
-  try{await addTasks([{subject:"בישול",kind:"bring",text,...d}]);$("#cookText").value="";toast("נשמר");render()}catch(e){toast("לא נשמר")}
+  return h+manualCard();
 }
 function manualCard(){
   return `<div class="card"><h3>הוספה ידנית</h3><div class="row" style="margin-top:0">
     <label class="f">מקצוע<select id="mSub">${SUBJECTS.map(s=>`<option>${s}</option>`).join("")}</select></label>
-    <label class="f">סוג<select id="mKind"><option value="homework">ש.ב</option><option value="classwork">בכיתה</option><option value="bring">להביא</option></select></label>
+    <label class="f">סוג<select id="mKind"><option value="homework">ש.ב</option><option value="classwork">בכיתה</option></select></label>
     <label class="f">לסיים עד (ריק = לפי המערכת)<input type="date" id="mDue"></label></div>
     <div class="row"><textarea id="mText" placeholder="למשל: עמ' 41–42"></textarea></div>
     <div class="row"><button class="btn" onclick="manualAdd()">הוספה</button></div></div>`;
