@@ -92,9 +92,10 @@ textarea{min-height:60px;resize:vertical}
 .rev.dupe .x{display:flex;justify-content:space-between;align-items:center;gap:8px}
 .rev .x{grid-column:1/-1;display:flex;justify-content:space-between;align-items:center;font-size:.85rem;color:var(--muted)}
 .err{color:var(--late);font-size:.9rem;margin-top:8px}
-.daynav{position:fixed;left:0;right:0;bottom:calc(64px + env(safe-area-inset-bottom));display:flex;justify-content:space-between;gap:10px;padding:10px 14px;background:linear-gradient(to top,var(--bg) 70%,rgba(244,246,251,0));z-index:4;max-width:640px;margin:0 auto}
-.daylink{flex:1;background:#1d2433;color:#fff;border:0;border-radius:14px;font:inherit;font-weight:700;min-height:46px;padding:10px 14px;cursor:pointer;box-shadow:0 2px 8px rgba(0,0,0,.15)}
-.daylink:disabled{opacity:.3}
+.daytitle{display:flex;align-items:center;justify-content:space-between;gap:8px;text-align:center}
+.daytitle span{flex:1}
+.arrow{width:40px;height:40px;flex:none;border-radius:50%;border:2px solid var(--line);background:#fff;color:var(--accent);font-size:1.6rem;line-height:1;cursor:pointer;padding:0 0 4px}
+.arrow:disabled{opacity:.25}
 .bagday{font-size:1.25rem;font-weight:700;margin:0 6px 12px}
 .bagsub{background:var(--card);border-radius:16px;padding:14px 16px;margin-bottom:10px;box-shadow:0 1px 3px rgba(0,0,0,.05)}
 .bagname{font-weight:700;font-size:1.1rem;margin-bottom:4px}
@@ -314,10 +315,10 @@ function viewBag(){
   const subs=[...new Set(TT[dow(day)]||[])].filter(x=>!NOT_BAG.includes(x));
   const bringAll=tasks.filter(t=>t.kind==="bring"&&t.lessonDate===day);
   const general=bringAll.filter(t=>!subs.includes(t.subject));
-  let h=`<div class="bagday">מה להביא ביום ${DAYS[dow(day)]} ${dm(day)}</div>
-    <div class="daynav">
-    <button class="daylink" ${i===0?"disabled":""} onclick="bagDay='${days[Math.max(0,i-1)]}';render()">→ יום קודם</button>
-    <button class="daylink" onclick="bagDay='${days[Math.min(days.length-1,i+1)]}';render()">יום הבא ←</button></div>`;
+  let h=`<div class="bagday daytitle">
+    <button class="arrow" aria-label="יום קודם" ${i===0?"disabled":""} onclick="bagDay='${days[Math.max(0,i-1)]}';render()">›</button>
+    <span>מה להביא ביום ${DAYS[dow(day)]} ${dm(day)}</span>
+    <button class="arrow" aria-label="יום הבא" onclick="bagDay='${days[Math.min(days.length-1,i+1)]}';render()">‹</button></div>`;
   if(bringAll.length)h+=`<div class="bagsub bagspecial"><div class="bagname">דברים נוספים להביא</div>${bringAll.map(bringLine).join("")}</div>`;
   let groups=subs.map(x=>({name:x,subs:[x]}));
   if(subs.includes("מתמטיקה")&&subs.includes("גאומטריה")){
@@ -334,7 +335,6 @@ function viewBag(){
       ${todo.map(t=>`<div class="bagwarn">לגמור: ${esc(t.text)}</div>`).join("")}</div>`;
   }).join("");
   if(isParent())h+=ttCard();
-  h+=`<div style="height:70px"></div>`;
   return h;
 }
 async function addBring(){
