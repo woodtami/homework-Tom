@@ -179,7 +179,13 @@ const today=()=>iso(new Date());
 const fmt=s=>s?`יום ${DSHORT[dow(s)]} ${parse(s).getDate()}/${parse(s).getMonth()+1}`:"";
 function nextSchoolDay(s){let d=addDays(s,1);while(dow(d)===6)d=addDays(d,1);return d}
 function nextLesson(subject,from){for(let i=1;i<=21;i++){const d=addDays(from,i);if((TT[dow(d)]||[]).includes(subject))return d}return null}
-function computeDates(subject,from,explicit){const lesson=explicit||nextLesson(subject,from)||addDays(from,1);return{lessonDate:lesson,dueDate:addDays(lesson,-1)}}
+const BUSY_DAYS=[2]; // שלישי – אין זמן לשיעורי בית
+function dueFor(lesson,from){
+  let d=addDays(lesson,-1);
+  while(BUSY_DAYS.includes(dow(d)))d=addDays(d,-1);
+  return from&&d<from?addDays(lesson,-1):d;
+}
+function computeDates(subject,from,explicit){const lesson=explicit||nextLesson(subject,from)||addDays(from,1);return{lessonDate:lesson,dueDate:dueFor(lesson,from)}}
 function normSubject(s){
   s=(s||"").trim();
   if(/פרטי/.test(s))return "אנגלית פרטי";
@@ -301,7 +307,8 @@ function viewDone(){
   return done.length?`<section class="group">${done.slice(0,60).map(taskHtml).join("")}</section>`:`<div class="empty">עוד לא סומן כלום</div>`;
 }
 let bagDay=null,editBring=null;
-function schoolDays(n){const out=[];let d=today();while(out.length<n){d=nextSchoolDay(d);out.push(d)}return out}
+function schoolDays(n){const out=[];let d=today();if(dow(d)!==6)out.push(d);while(out.length<n){d=nextSchoolDay(d);out.push(d)}return out}
+function defaultBagDay(days){return days[0]===today()&&new Date().getHours()<12?days[0]:days.find(d=>d>today())}
 function bringLine(t){
   if(isParent()&&editBring===t.id)return `<div class="card" style="margin:8px 0 0;padding:12px;box-shadow:none;border:2px solid var(--line)">
     <input id="ebText" value="${esc(t.text)}">
@@ -312,13 +319,13 @@ function bringLine(t){
 }
 function viewBag(){
   const days=schoolDays(12);
-  const day=bagDay&&days.includes(bagDay)?bagDay:days[0];
+  const day=bagDay&&days.includes(bagDay)?bagDay:defaultBagDay(days);
   const i=days.indexOf(day);
   const subs=[...new Set(TT[dow(day)]||[])].filter(x=>!NOT_BAG.includes(x));
   const bringAll=tasks.filter(t=>t.kind==="bring"&&t.lessonDate===day);
   const general=bringAll.filter(t=>!subs.includes(t.subject));
   let h=`<div class="bagday daytitle">
-    <span>מה להביא ביום ${DAYS[dow(day)]} ${dm(day)}</span>
+    <span>מה להביא ${day===today()?"היום":day===days.find(d=>d>today())?"מחר":"ביום"} ${day===today()||day===days.find(d=>d>today())?"– ":""}${DAYS[dow(day)]} ${dm(day)}</span>
     <span class="arrows"><button class="arrow" aria-label="יום קודם" ${i===0?"disabled":""} onclick="bagDay='${days[Math.max(0,i-1)]}';render()"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 6 15 12 9 18"/></svg></button><button class="arrow" aria-label="יום הבא" onclick="bagDay='${days[Math.min(days.length-1,i+1)]}';render()"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 6 9 12 15 18"/></svg></button></span></div>`;
   if(bringAll.length)h+=`<div class="bagsub bagspecial"><div class="bagname">דברים נוספים להביא</div>${bringAll.map(bringLine).join("")}</div>`;
   let groups=subs.map(x=>({name:x,subs:[x]}));
@@ -405,6 +412,8 @@ function viewSettings(){
     <p class="hint">נשמר רק בטלפון הזה. מקבלים בחינם ב-aistudio.google.com ← Get API key.</p>
     <div class="row"><input id="gk" type="password" style="flex:1" placeholder="${gkey?"•••• שמור":"הדביקו כאן את המפתח"}"><button class="btn" onclick="saveKey()">שמירה</button>${gkey?`<button class="btn ghost" onclick="gkey=null;store.set('gkey',null);render()">מחיקה</button>`:""}</div></div>
     ${ttCard()}
+    <div class="card"><h3>ימים עמוסים</h3><p class="hint">ביום שלישי אין זמן לשיעורי בית, אז משימה שהמועד שלה יוצא בשלישי מוקדמת ליום הקודם. משימות חדשות מסודרות לבד. כדי לסדר גם משימות פתוחות שכבר ברשימה:</p>
+    <button class="btn ghost" onclick="fixBusy()">לסדר משימות פתוחות</button></div>
     <div class="card"><h3>קישור משפחתי</h3><p class="hint">שלחו את הקישור הזה לאבא ולתום (למשל בווטסאפ). מי שיש לו אותו יכול לראות ולסמן – לא לפרסם.</p>
     <div class="row"><button class="btn" onclick="copyLink()">העתקת הקישור</button></div></div>
     ${loaded&&!tasks.length?`<div class="card"><h3>משימות התחלתיות</h3><p class="hint">להעביר את המשימות שהיו בדף הקודם?</p><button class="btn" onclick="importSeed()">העברה</button></div>`:""}`:""}`;
@@ -549,6 +558,12 @@ async function manualAdd(){
   if(dup&&manualForce!==text){manualForce=text;$("#mWarn").innerHTML=`כבר ברשימה: ${esc(dup.subject)} – ${esc(dup.text)}${dup.done?" (סומן כבוצע)":""}. ללחוץ שוב על "הוספה" כדי להוסיף בכל זאת.`;return}
   manualForce=null;
   try{await addTasks([{subject,kind,text,dueDate:due||d.dueDate,lessonDate:d.lessonDate,givenDate:today()}]);$("#mText").value="";$("#mWarn").textContent="";toast("נוסף")}catch(e){toast("לא נשמר")}
+}
+async function fixBusy(){
+  const list=tasks.filter(t=>!t.done&&t.kind!=="bring"&&t.lessonDate&&BUSY_DAYS.includes(dow(t.dueDate)));
+  let n=0;
+  for(const t of list){const nd=dueFor(t.lessonDate,t.givenDate);if(nd!==t.dueDate){t.dueDate=nd;try{await sb("tasks?id=eq."+encodeURIComponent(t.id),{method:"PATCH",body:JSON.stringify({due_date:nd})});n++}catch(e){}}}
+  toast(n?`עודכנו ${n} משימות`:"אין משימות לעדכן");render();
 }
 async function importSeed(){
   const seed=[
