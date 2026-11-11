@@ -289,7 +289,8 @@ function taskHtml(t){
     <label class="f">ניתן ביום${t.givenDate?"":" <span style='color:var(--muted)'>(לא נשמר במשימה הזו)</span>"}<input type="date" name="given" value="${t.givenDate||""}" max="${today()}" onchange="const f=this.closest('.body');if(this.value){const d=computeDates(f.querySelector('[name=subject]').value,this.value,null);f.querySelector('[name=due]').value=d.dueDate}"></label>
     <label class="f">לסיים עד<input type="date" name="due" value="${t.dueDate||""}"></label>
     <div class="row" style="margin:0"><button class="btn" onclick="saveEdit('${t.id}')">שמירה</button><button class="btn ghost" onclick="editId=null;render()">ביטול</button><button class="icon" style="margin-inline-start:auto;color:var(--late)" onclick="removeTask('${t.id}')">${confirmId===t.id?"בטוח?":"הסרה"}</button></div></div></div>`;
-  const kindTag=t.kind==="bring"?`<span class="tag bring">להביא</span>`:"";
+  const moved=t.kind!=="bring"&&t.lessonDate&&t.dueDate&&t.dueDate<addDays(t.lessonDate,-1);
+  const kindTag=(t.kind==="bring"?`<span class="tag bring">להביא</span>`:"")+(moved&&!t.done?`<span class="tag soon">השיעור ביום ${DAYS[dow(t.lessonDate)]} ${dm(t.lessonDate)}</span>`:"");
   return `<div class="task ${t.done?"done":""}">
     <button class="chk" aria-label="סימון" onclick="toggle('${t.id}')">${t.done?"✓":""}</button>
     <div class="body"><div class="subj">${esc(t.subject)}</div>
