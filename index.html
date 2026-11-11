@@ -180,10 +180,15 @@ const fmt=s=>s?`יום ${DSHORT[dow(s)]} ${parse(s).getDate()}/${parse(s).getMon
 function nextSchoolDay(s){let d=addDays(s,1);while(dow(d)===6)d=addDays(d,1);return d}
 function nextLesson(subject,from){for(let i=1;i<=21;i++){const d=addDays(from,i);if((TT[dow(d)]||[]).includes(subject))return d}return null}
 const BUSY_DAYS=[2]; // שלישי – אין זמן לשיעורי בית
+let extraLoad={};
+function loadOn(d){return tasks.filter(t=>!t.done&&t.kind!=="bring"&&t.dueDate===d).length+(extraLoad[d]||0)}
 function dueFor(lesson,from){
-  let d=addDays(lesson,-1);
-  while(BUSY_DAYS.includes(dow(d)))d=addDays(d,-1);
-  return from&&d<from?addDays(lesson,-1):d;
+  const def=addDays(lesson,-1);
+  if(!BUSY_DAYS.includes(dow(def)))return def;
+  // היום שלפני עמוס – בוחרים את היום הכי פנוי מבין 3 הימים שלפניו
+  const cand=[2,3,4].map(k=>addDays(lesson,-k)).filter(d=>!BUSY_DAYS.includes(dow(d))&&(!from||d>=from));
+  if(!cand.length)return def;
+  return cand.reduce((best,d)=>loadOn(d)<loadOn(best)?d:best);
 }
 function computeDates(subject,from,explicit){const lesson=explicit||nextLesson(subject,from)||addDays(from,1);return{lessonDate:lesson,dueDate:dueFor(lesson,from)}}
 function normSubject(s){
@@ -522,10 +527,12 @@ async function readInput(){
     const parts=[{text:buildPrompt(srcDate)}];
     for(const [i,p] of pendingImgs.entries()){parts.push({text:`תמונה ${i+1} (${p.manual?"תמונה רגילה – צילום לוח או הודעה, ללא תאריך; dateInImage=null":"צילום מסך מאפליקציית בית הספר"}):`});parts.push({inline_data:{mime_type:"image/jpeg",data:await b64(p.blob)}})}
     const out=await callGemini(parts);
+    extraLoad={};
     reviewing=(out.items||[]).map(it=>{
       const subject=normSubject(it.subject),okD2=normDate,okD=x=>{const d=normDate(x);return d&&d<=today()?d:null},img=pendingImgs[(Number(it.image)||0)-1]||(pendingImgs.length===1&&!pendingText.trim()?pendingImgs[0]:null),inImg=okD(it.dateInImage),from=(img&&img.manual?img.date:null)||inImg||(img&&img.date)||srcDate,dateSrc=img&&img.manual?"manual":inImg?"image":img?"file":"text",lesson=okD2(it.lessonDate)&&okD2(it.lessonDate)>from?okD2(it.lessonDate):null,d=computeDates(subject,from,lesson),text=(it.text||"").trim();
       const n=s=>(s||"").replace(/[^֐-׿a-z0-9]/gi,"");
       const dup=findDup(subject,text,d.lessonDate)||null;
+      if(!dup)extraLoad[d.dueDate]=(extraLoad[d.dueDate]||0)+1;
       return{subject,text:it.kind==="classwork"&&!/בבית/.test(text)?text+" – לסיים בבית":text,kind:"homework",...d,dup,sourceDate:from,dateSrc};
     });
   }catch(e){
@@ -546,11 +553,12 @@ function findDup(subject,text,lessonDate){
 async function saveReview(){
   const list=reviewing.filter(r=>r.text.trim()&&(!r.dup||r.force));
   if(!list.length){toast("אין משימות חדשות לשמור");reviewing=null;render();return}
-  try{await addTasks(list);reviewing=null;pendingImgs=[];pendingText="";toast(`נשמרו ${list.length} משימות חדשות`);go("open")}
+  try{await addTasks(list);extraLoad={};reviewing=null;pendingImgs=[];pendingText="";toast(`נשמרו ${list.length} משימות חדשות`);go("open")}
   catch(e){toast("השמירה נכשלה – בדקו אינטרנט")}
 }
 let manualForce=null;
 async function manualAdd(){
+  extraLoad={};
   const subject=$("#mSub").value,kind="homework",text=$("#mText").value.trim(),due=$("#mDue").value;
   if(!text){toast("כתבו מה צריך לעשות");return}
   const d=computeDates(subject,today(),null);
