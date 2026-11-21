@@ -29,7 +29,7 @@ nav{position:fixed;bottom:0;left:0;right:0;background:#fff;border-top:1px solid 
 nav button{flex:1;background:none;border:0;font:inherit;color:var(--muted);padding:14px 0;border-radius:14px;cursor:pointer;font-size:.95rem}
 nav button .ic{font-size:1.5rem;line-height:1}
 nav button{position:relative}
-.badge{display:inline-grid;place-items:center;min-width:20px;height:20px;padding:0 6px;margin-inline-start:6px;border-radius:99px;background:#f0b429;color:#1d2433;font-size:.75rem;font-weight:700;vertical-align:middle}
+.badge{display:inline-block;width:10px;height:10px;margin-inline-start:6px;border-radius:50%;background:var(--late);vertical-align:middle;box-shadow:0 0 0 2px #fff}
 nav button.on{color:var(--accent);background:var(--accent-soft);font-weight:700}
 main{max-width:640px;margin:0 auto;padding:16px 14px 20px}
 .status{color:var(--muted);padding:12px 4px}
@@ -435,7 +435,7 @@ function navHtml(){
   const tabs=[["open","משימות"],["bag","מה להביא"],...(isParent()?[["add","הוספה"]]:[]),["done","בוצע"]];
   const bd=defaultBagDay(schoolDays(3));
   const extra=tasks.filter(t=>t.kind==="bring"&&t.lessonDate===bd).length;
-  return tabs.map(([v,l])=>`<button class="${v===view?"on":""}" onclick="go('${v}')">${l}${v==="bag"&&extra?`<span class="badge" aria-label="יש ${extra} דברים מיוחדים להביא">${extra}</span>`:""}</button>`).join("");
+  return tabs.map(([v,l])=>`<button class="${v===view?"on":""}" onclick="go('${v}')">${l}${v==="bag"&&extra?`<span class="badge" aria-label="יש דברים מיוחדים להביא"></span>`:""}</button>`).join("");
 }
 function go(v){view=v;render();window.scrollTo(0,0)}
 function render(){
