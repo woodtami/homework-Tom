@@ -28,6 +28,8 @@ header .sub{opacity:.9;font-size:.85rem;margin-top:2px}
 nav{position:fixed;bottom:0;left:0;right:0;background:#fff;border-top:1px solid var(--line);display:flex;padding:6px 6px calc(6px + env(safe-area-inset-bottom));z-index:5}
 nav button{flex:1;background:none;border:0;font:inherit;color:var(--muted);padding:14px 0;border-radius:14px;cursor:pointer;font-size:.95rem}
 nav button .ic{font-size:1.5rem;line-height:1}
+nav button{position:relative}
+.badge{display:inline-grid;place-items:center;min-width:20px;height:20px;padding:0 6px;margin-inline-start:6px;border-radius:99px;background:#f0b429;color:#1d2433;font-size:.75rem;font-weight:700;vertical-align:middle}
 nav button.on{color:var(--accent);background:var(--accent-soft);font-weight:700}
 main{max-width:640px;margin:0 auto;padding:16px 14px 20px}
 .status{color:var(--muted);padding:12px 4px}
@@ -304,8 +306,8 @@ function viewOpen(){
   const td=today(),tm=addDays(td,1);
   const open=tasks.filter(t=>!t.done&&t.kind!=="bring").sort((a,b)=>(a.dueDate||"").localeCompare(b.dueDate||""));
   if(!open.length)return `<div class="empty"><b>כל הכבוד!</b>אין שיעורים פתוחים</div>`;
-  const groups=[{c:"late",t:"עבר הזמן – לסיים עכשיו",f:t=>t.dueDate<td},{c:"today",t:`לסיים היום (${DAYS[dow(td)]} ${dm(td)})`,f:t=>t.dueDate===td},{c:"",t:`לסיים עד מחר (${DAYS[dow(tm)]} ${dm(tm)})`,f:t=>t.dueDate===tm}];
-  [...new Set(open.filter(t=>t.dueDate>tm).map(t=>t.dueDate))].forEach(d=>groups.push({c:"",t:`לסיים עד יום ${DAYS[dow(d)]} ${dm(d)}`,f:t=>t.dueDate===d}));
+  const groups=[{c:"late",t:"באיחור – לעשות כמה שיותר מהר",f:t=>t.dueDate<td},{c:"today",t:`לעשות היום · ${DAYS[dow(td)]} ${dm(td)}`,f:t=>t.dueDate===td},{c:"",t:`לעשות מחר · ${DAYS[dow(tm)]} ${dm(tm)}`,f:t=>t.dueDate===tm}];
+  [...new Set(open.filter(t=>t.dueDate>tm).map(t=>t.dueDate))].forEach(d=>groups.push({c:"",t:`לעשות ביום ${DAYS[dow(d)]} · ${dm(d)}`,f:t=>t.dueDate===d}));
   return groups.map(g=>{const l=open.filter(g.f);return l.length?`<section class="group ${g.c}"><h2>${g.t}</h2>${l.map(taskHtml).join("")}</section>`:""}).join("");
 }
 function viewDone(){
@@ -429,7 +431,9 @@ function viewNoLink(){
 }
 function navHtml(){
   const tabs=[["open","משימות"],["bag","מה להביא"],...(isParent()?[["add","הוספה"]]:[]),["done","בוצע"]];
-  return tabs.map(([v,l])=>`<button class="${v===view?"on":""}" onclick="go('${v}')">${l}</button>`).join("");
+  const bd=defaultBagDay(schoolDays(3));
+  const extra=tasks.filter(t=>t.kind==="bring"&&t.lessonDate===bd).length;
+  return tabs.map(([v,l])=>`<button class="${v===view?"on":""}" onclick="go('${v}')">${l}${v==="bag"&&extra?`<span class="badge" aria-label="יש ${extra} דברים מיוחדים להביא">${extra}</span>`:""}</button>`).join("");
 }
 function go(v){view=v;render();window.scrollTo(0,0)}
 function render(){
