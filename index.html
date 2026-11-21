@@ -292,7 +292,7 @@ function taskHtml(t){
     <label class="f">לסיים עד<input type="date" name="due" value="${t.dueDate||""}"></label>
     <div class="row" style="margin:0"><button class="btn" onclick="saveEdit('${t.id}')">שמירה</button><button class="btn ghost" onclick="editId=null;render()">ביטול</button><button class="icon" style="margin-inline-start:auto;color:var(--late)" onclick="removeTask('${t.id}')">${confirmId===t.id?"בטוח?":"הסרה"}</button></div></div></div>`;
   const moved=t.kind!=="bring"&&t.lessonDate&&t.dueDate&&t.dueDate<addDays(t.lessonDate,-1);
-  const kindTag=(t.kind==="bring"?`<span class="tag bring">להביא</span>`:"")+(moved&&!t.done?`<span class="tag soon">השיעור ביום ${DAYS[dow(t.lessonDate)]} ${dm(t.lessonDate)}</span>`:"");
+  const kindTag=(t.kind==="bring"?`<span class="tag bring">להביא</span>`:"")+(moved&&!t.done?`<span class="tag today">כדאי לעשות עד יום ${DAYS[dow(t.dueDate)]} ${dm(t.dueDate)}</span>`:"");
   return `<div class="task ${t.done?"done":""}">
     <button class="chk" aria-label="סימון" onclick="toggle('${t.id}')">${t.done?"✓":""}</button>
     <div class="body"><div class="subj">${esc(t.subject)}</div>
@@ -303,11 +303,13 @@ function taskHtml(t){
 }
 const dm=d=>`${parse(d).getDate()}/${parse(d).getMonth()+1}`;
 function viewOpen(){
-  const td=today(),tm=addDays(td,1);
-  const open=tasks.filter(t=>!t.done&&t.kind!=="bring").sort((a,b)=>(a.dueDate||"").localeCompare(b.dueDate||""));
+  const td=today();
+  const lessonOf=t=>t.lessonDate||addDays(t.dueDate,1);
+  const open=tasks.filter(t=>!t.done&&t.kind!=="bring").sort((a,b)=>lessonOf(a).localeCompare(lessonOf(b))||(a.dueDate||"").localeCompare(b.dueDate||""));
   if(!open.length)return `<div class="empty"><b>כל הכבוד!</b>אין שיעורים פתוחים</div>`;
-  const groups=[{c:"late",t:"באיחור – לעשות כמה שיותר מהר",f:t=>t.dueDate<td},{c:"today",t:`לעשות היום · ${DAYS[dow(td)]} ${dm(td)}`,f:t=>t.dueDate===td},{c:"",t:`לעשות מחר · ${DAYS[dow(tm)]} ${dm(tm)}`,f:t=>t.dueDate===tm}];
-  [...new Set(open.filter(t=>t.dueDate>tm).map(t=>t.dueDate))].forEach(d=>groups.push({c:"",t:`לעשות ביום ${DAYS[dow(d)]} · ${dm(d)}`,f:t=>t.dueDate===d}));
+  const late=t=>t.dueDate<td;
+  const groups=[{c:"late",t:"באיחור – לעשות כמה שיותר מהר",f:late}];
+  [...new Set(open.filter(t=>!late(t)).map(lessonOf))].forEach(d=>groups.push({c:"",t:`לשיעור ביום ${DAYS[dow(d)]} ${dm(d)}`,f:t=>!late(t)&&lessonOf(t)===d}));
   return groups.map(g=>{const l=open.filter(g.f);return l.length?`<section class="group ${g.c}"><h2>${g.t}</h2>${l.map(taskHtml).join("")}</section>`:""}).join("");
 }
 function viewDone(){
